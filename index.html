@@ -4,8 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pronunciation Practice</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
     <style>
+        :root {
+            --duo-green: #58CC02;
+            --duo-blue: #1CB0F6;
+            --duo-yellow: #FFC800;
+            --duo-red: #FF4B4B;
+            --duo-gray: #AFAFAF;
+            --duo-light-gray: #F7F7F7;
+            --text-dark: #3C3C3C;
+            --text-gray: #777777;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,587 +27,148 @@
         }
 
         body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #F7F7F7 0%, #FFFFFF 100%);
             min-height: 100vh;
-            background: linear-gradient(135deg, #EBF4FF 0%, #E0E7FF 50%, #EDE9FE 100%);
-            padding: 24px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text-dark);
+            overflow-x: hidden;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto;
+            padding: 24px;
         }
 
+        /* iPad 가로 최적화 */
+        @media (min-width: 768px) and (orientation: landscape) {
+            .container {
+                max-width: 900px;
+                padding: 40px;
+            }
+        }
+
+        /* 헤더 */
         .header {
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 40px;
         }
 
         .title {
-            font-size: 48px;
-            font-weight: bold;
-            background: linear-gradient(to right, #2563EB, #7C3AED);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 12px;
+            font-size: 42px;
+            font-weight: 900;
+            color: var(--duo-green);
+            margin-bottom: 8px;
+            letter-spacing: -1px;
         }
 
         .subtitle {
             font-size: 18px;
-            color: #4B5563;
+            color: var(--text-gray);
+            font-weight: 600;
         }
 
+        /* 진행 표시 */
         .progress-container {
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            padding: 24px;
-            border: 2px solid #DBEAFE;
+            border-radius: 20px;
+            padding: 20px;
             margin-bottom: 32px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         }
 
         .progress-steps {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
         .step {
             display: flex;
             flex-direction: column;
             align-items: center;
+            flex: 1;
         }
 
         .step-circle {
-            width: 48px;
-            height: 48px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 18px;
-            transition: all 0.3s;
+            justify-center;
+            font-weight: 900;
+            font-size: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 4px solid transparent;
         }
 
         .step-circle.active {
-            background: linear-gradient(to right, #3B82F6, #8B5CF6);
+            background: var(--duo-green);
             color: white;
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(88, 204, 2, 0.3);
         }
 
         .step-circle.completed {
-            background: #10B981;
+            background: var(--duo-green);
             color: white;
         }
 
         .step-circle.inactive {
-            background: #E5E7EB;
-            color: #9CA3AF;
+            background: var(--duo-light-gray);
+            color: var(--duo-gray);
+            border-color: #E5E5E5;
         }
 
         .step-label {
-            margin-top: 8px;
+            margin-top: 12px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .step-label.active {
-            color: #1F2937;
+            color: var(--duo-green);
+        }
+
+        .step-label.completed {
+            color: var(--duo-green);
         }
 
         .step-label.inactive {
-            color: #9CA3AF;
+            color: var(--duo-gray);
         }
 
         .progress-line {
             flex: 1;
             height: 4px;
             border-radius: 2px;
-            margin: 0 16px;
+            margin: 0 12px;
             transition: all 0.3s;
+            align-self: flex-start;
+            margin-top: 26px;
         }
 
         .progress-line.completed {
-            background: #10B981;
+            background: var(--duo-green);
         }
 
         .progress-line.inactive {
-            background: #E5E7EB;
+            background: #E5E5E5;
         }
 
+        /* 컨텐츠 카드 */
         .content-card {
             background: white;
             border-radius: 24px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            padding: 32px;
-            border: 2px solid #DBEAFE;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        h2 {
-            font-size: 24px;
-            font-weight: bold;
-            color: #1F2937;
-            margin-bottom: 16px;
-        }
-
-        p {
-            color: #4B5563;
-            line-height: 1.6;
-            margin-bottom: 24px;
-        }
-
-        .error-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px;
-            background: #FEE2E2;
-            border: 1px solid #FCA5A5;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-
-        .error-text {
-            font-size: 14px;
-            font-weight: 600;
-            color: #991B1B;
-        }
-
-        textarea {
-            width: 100%;
-            padding: 16px;
-            font-size: 18px;
-            line-height: 1.6;
-            color: #374151;
-            background: #EFF6FF;
-            border: 2px solid #BFDBFE;
-            border-radius: 12px;
-            resize: none;
-            font-family: inherit;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #60A5FA;
-        }
-
-        button {
-            padding: 16px 32px;
-            font-size: 18px;
-            font-weight: bold;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: inherit;
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn-primary {
-            background: linear-gradient(to right, #3B82F6, #8B5CF6);
-            color: white;
-            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            transform: scale(1.05);
-            box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.3);
-        }
-
-        .btn-secondary {
-            background: #F3F4F6;
-            color: #374151;
-        }
-
-        .btn-secondary:hover {
-            background: #E5E7EB;
-        }
-
-        .btn-success {
-            background: linear-gradient(to right, #10B981, #14B8A6);
-            color: white;
-            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-success:hover:not(:disabled) {
-            transform: scale(1.05);
-        }
-
-        .btn-warning {
-            background: linear-gradient(to right, #F59E0B, #F97316);
-            color: white;
-        }
-
-        .btn-danger {
-            background: linear-gradient(to right, #EF4444, #EC4899);
-            color: white;
-            box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);
-        }
-
-        .btn-stop {
-            background: #EF4444;
-            color: white;
-            padding: 16px 24px;
-        }
-
-        .btn-restart {
-            background: #3B82F6;
-            color: white;
-            padding: 16px 24px;
-        }
-
-        .btn-gray {
-            background: #4B5563;
-            color: white;
-        }
-
-        .flex {
-            display: flex;
-        }
-
-        .flex-col {
-            flex-direction: column;
-        }
-
-        .items-center {
-            align-items: center;
-        }
-
-        .justify-between {
-            justify-content: space-between;
-        }
-
-        .justify-center {
-            justify-content: center;
-        }
-
-        .gap-4 {
-            gap: 16px;
-        }
-
-        .gap-3 {
-            gap: 12px;
-        }
-
-        .mb-4 {
-            margin-bottom: 16px;
-        }
-
-        .mb-6 {
-            margin-bottom: 24px;
-        }
-
-        .mt-6 {
-            margin-top: 24px;
-        }
-
-        .flex-1 {
-            flex: 1;
-        }
-
-        .settings-panel {
-            padding: 24px;
-            background: linear-gradient(to right, #EFF6FF, #F5F3FF);
-            border-radius: 16px;
-            border: 2px solid #BFDBFE;
-            margin-bottom: 24px;
-        }
-
-        .settings-panel label {
-            display: block;
-            font-size: 14px;
-            font-weight: bold;
-            color: #374151;
-            margin-bottom: 8px;
-        }
-
-        .settings-panel select,
-        .settings-panel input[type="range"] {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #BFDBFE;
-            border-radius: 8px;
-            background: white;
-            font-weight: 500;
-            color: #374151;
-        }
-
-        .settings-panel select:focus {
-            outline: none;
-            border-color: #3B82F6;
-        }
-
-        .tip-text {
-            font-size: 12px;
-            color: #6B7280;
-            margin-top: 4px;
-        }
-
-        .text-box {
-            padding: 24px;
-            background: #EFF6FF;
-            border-radius: 12px;
-            border: 2px solid #BFDBFE;
-            margin-bottom: 24px;
-        }
-
-        .text-box.indigo {
-            background: #EEF2FF;
-            border-color: #C7D2FE;
-        }
-
-        .text-content {
-            font-size: 18px;
-            line-height: 1.6;
-            color: #374151;
-            white-space: pre-wrap;
-        }
-
-        .recording-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .recording-dot {
-            width: 12px;
-            height: 12px;
-            background: #EF4444;
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .recording-text {
-            font-size: 14px;
-            font-weight: 600;
-            color: #DC2626;
-        }
-
-        .transcription-box {
-            min-height: 128px;
-            padding: 16px;
-            background: white;
-            border-radius: 12px;
-            border: 2px solid #C7D2FE;
-            margin-bottom: 24px;
-        }
-
-        .transcription-label {
-            font-size: 14px;
-            font-weight: bold;
-            color: #374151;
-            margin-bottom: 8px;
-        }
-
-        .score-circle {
-            width: 160px;
-            height: 160px;
-            position: relative;
-            margin: 0 auto 24px;
-        }
-
-        .score-value {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-        }
-
-        .score-number {
-            font-size: 36px;
-            font-weight: bold;
-            color: #1F2937;
-        }
-
-        .score-label {
-            font-size: 14px;
-            color: #6B7280;
-        }
-
-        .feedback-box {
-            padding: 24px;
-            border-radius: 16px;
-            border: 2px solid;
-            margin-bottom: 24px;
-        }
-
-        .feedback-box.green {
-            background: #F0FDF4;
-            border-color: #BBF7D0;
-        }
-
-        .feedback-box.yellow {
-            background: #FFFBEB;
-            border-color: #FDE68A;
-        }
-
-        .feedback-box.red {
-            background: #FEF2F2;
-            border-color: #FECACA;
-        }
-
-        .feedback-text {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1F2937;
-            text-align: center;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            padding: 24px;
-            border-radius: 16px;
-            border: 1px solid;
-        }
-
-        .stat-card.blue {
-            background: linear-gradient(135deg, #EFF6FF 0%, #E0E7FF 100%);
-            border-color: #BFDBFE;
-        }
-
-        .stat-card.green {
-            background: linear-gradient(135deg, #F0FDF4 0%, #D1FAE5 100%);
-            border-color: #BBF7D0;
-        }
-
-        .stat-number {
-            font-size: 36px;
-            font-weight: bold;
-        }
-
-        .stat-number.blue {
-            color: #2563EB;
-        }
-
-        .stat-number.green {
-            color: #10B981;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: #4B5563;
-            font-weight: 500;
-        }
-
-        .sentence-card {
-            width: 100%;
-            margin-bottom: 16px;
-            padding: 16px;
-            border-radius: 12px;
-            border: 2px solid;
-            transition: all 0.3s;
-        }
-
-        .sentence-card.green {
-            background: #F0FDF4;
-            border-color: #86EFAC;
-        }
-
-        .sentence-card.yellow {
-            background: #FFFBEB;
-            border-color: #FDE047;
-        }
-
-        .sentence-card.red {
-            background: #FEF2F2;
-            border-color: #FCA5A5;
-        }
-
-        .sentence-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-
-        .sentence-label {
-            font-weight: bold;
-            color: #374151;
-        }
-
-        .sentence-score {
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .sentence-score.green {
-            color: #16A34A;
-        }
-
-        .sentence-score.yellow {
-            color: #CA8A04;
-        }
-
-        .sentence-score.red {
-            color: #DC2626;
-        }
-
-        .sentence-text {
-            color: #374151;
-            margin-bottom: 8px;
-        }
-
-        .sentence-stats {
-            font-size: 14px;
-            color: #6B7280;
-        }
-
-        .tips-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            padding: 24px;
-            border: 1px solid #E5E7EB;
-            margin-top: 24px;
-        }
-
-        .tips-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #1F2937;
-            margin-bottom: 12px;
-        }
-
-        .tips-list {
-            list-style: none;
-        }
-
-        .tips-list li {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 8px;
-            color: #374151;
-        }
-
-        .tip-bullet {
-            color: #3B82F6;
-        }
-
-        .animate-fadeIn {
-            animation: fadeIn 0.5s ease-out;
+            padding: 48px 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 2px solid #F0F0F0;
+            animation: fadeIn 0.4s ease-out;
         }
 
         @keyframes fadeIn {
@@ -607,49 +182,371 @@
             }
         }
 
-        .btn-small {
-            padding: 12px 16px;
-            font-size: 14px;
-            border-radius: 999px;
+        @media (min-width: 768px) and (orientation: landscape) {
+            .content-card {
+                padding: 56px 64px;
+            }
         }
 
-        .range-slider {
-            -webkit-appearance: none;
-            appearance: none;
-            height: 8px;
-            background: #BFDBFE;
-            border-radius: 4px;
-            cursor: pointer;
+        .hidden {
+            display: none !important;
         }
 
-        .range-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #3B82F6;
-            border-radius: 50%;
-            cursor: pointer;
+        h2 {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            text-align: center;
+            letter-spacing: -0.5px;
         }
 
-        .range-slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: #3B82F6;
-            border-radius: 50%;
-            cursor: pointer;
+        p {
+            color: var(--text-gray);
+            line-height: 1.6;
+            margin-bottom: 24px;
+            font-size: 17px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* 버튼 - Duolingo 스타일 */
+        button {
+            padding: 18px 40px;
+            font-size: 18px;
+            font-weight: 800;
             border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Nunito', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+            position: relative;
+            top: 0;
         }
 
-        .range-label {
+        button:active:not(:disabled) {
+            top: 4px;
+            box-shadow: 0 0 0 rgba(0, 0, 0, 0.1);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--duo-green);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #4CAD02;
+            transform: scale(1.02);
+        }
+
+        .btn-secondary {
+            background: #E5E5E5;
+            color: var(--text-dark);
+        }
+
+        .btn-secondary:hover {
+            background: #D0D0D0;
+        }
+
+        .btn-success {
+            background: var(--duo-green);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #4CAD02;
+        }
+
+        .btn-danger {
+            background: var(--duo-red);
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #E63939;
+        }
+
+        .btn-gray {
+            background: var(--text-gray);
+            color: white;
+        }
+
+        .btn-gray:hover {
+            background: #666666;
+        }
+
+        /* 플렉스 레이아웃 */
+        .flex {
+            display: flex;
+        }
+
+        .gap-4 {
+            gap: 16px;
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+
+        /* 텍스트 영역 */
+        textarea {
+            width: 100%;
+            padding: 20px;
+            font-size: 18px;
+            line-height: 1.8;
+            color: var(--text-dark);
+            background: #F7F9FC;
+            border: 3px solid #E5E7EB;
+            border-radius: 16px;
+            resize: none;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--duo-blue);
+            background: white;
+        }
+
+        /* 입력 필드 */
+        input[type="text"],
+        input[type="number"] {
+            padding: 16px 20px;
+            font-size: 16px;
+            border: 3px solid #E5E7EB;
+            border-radius: 12px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--duo-blue);
+        }
+
+        /* 녹음 상태 */
+        .recording-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--duo-yellow);
+            padding: 20px 32px;
+            border-radius: 100px;
+            border: 4px solid #FFA500;
+            box-shadow: 0 8px 0 #FFA500;
+        }
+
+        .recording-dot {
+            width: 16px;
+            height: 16px;
+            background: var(--duo-red);
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 0.7;
+            }
+        }
+
+        .recording-text {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--text-dark);
+        }
+
+        /* 에러 박스 */
+        .error-box {
             display: flex;
             align-items: center;
             gap: 12px;
+            padding: 16px 20px;
+            background: #FEE2E2;
+            border: 3px solid var(--duo-red);
+            border-radius: 16px;
+            margin-bottom: 20px;
         }
 
-        .range-text {
+        .error-text {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--duo-red);
+        }
+
+        /* 진행 바 (문장별) */
+        .sentence-progress-container {
+            background: #E5E5E5;
+            height: 12px;
+            border-radius: 100px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .sentence-progress-bar {
+            background: linear-gradient(90deg, var(--duo-green), #4CAD02);
+            height: 100%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 100px;
+        }
+
+        /* 현재 문장 카드 */
+        .current-sentence-card {
+            background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+            border: 4px solid var(--duo-blue);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 8px 0 rgba(28, 176, 246, 0.2);
+        }
+
+        .sentence-label {
             font-size: 14px;
-            color: #6B7280;
+            font-weight: 900;
+            color: var(--duo-blue);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sentence-text {
+            font-size: 24px;
+            line-height: 1.6;
+            color: var(--text-dark);
+            font-weight: 700;
+        }
+
+        /* 결과 카드 */
+        .result-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 3px solid #E5E5E5;
+            transition: all 0.2s;
+        }
+
+        .result-card:hover {
+            border-color: var(--duo-green);
+            box-shadow: 0 4px 12px rgba(88, 204, 2, 0.15);
+        }
+
+        .result-card.green {
+            border-color: var(--duo-green);
+            background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+        }
+
+        .result-card.yellow {
+            border-color: var(--duo-yellow);
+            background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+        }
+
+        .result-card.red {
+            border-color: var(--duo-red);
+            background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+        }
+
+        /* 점수 표시 */
+        .score-circle {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 32px;
+        }
+
+        .score-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 56px;
+            font-weight: 900;
+            color: var(--duo-green);
+        }
+
+        /* 애니메이션 */
+        .animate-fadeIn {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        /* 이미지 업로드 */
+        .image-upload-label {
+            display: inline-block;
+            padding: 18px 40px;
+            background: var(--duo-blue);
+            color: white;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 18px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 rgba(28, 176, 246, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .image-upload-label:hover {
+            background: #1698D1;
+            transform: scale(1.02);
+        }
+
+        .image-upload-label:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 rgba(28, 176, 246, 0.3);
+        }
+
+        /* 음성 선택 */
+        select {
+            padding: 16px 20px;
+            font-size: 16px;
+            border: 3px solid #E5E7EB;
+            border-radius: 12px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--duo-blue);
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 32px;
+            }
+
+            h2 {
+                font-size: 24px;
+            }
+
+            button {
+                padding: 16px 28px;
+                font-size: 16px;
+            }
+
+            .content-card {
+                padding: 32px 24px;
+            }
         }
     </style>
 </head>
@@ -845,7 +742,6 @@ Climate change is one of the most pressing issues facing our planet today. Risin
                             <option value="en-AU-Neural2-A">AU Female (Neural2-A) - Australian</option>
                             <option value="en-AU-Neural2-B">AU Male (Neural2-B) - Australian</option>
                         </select>
-                        <p class="tip-text">💡 Neural voices sound much more natural and human-like</p>
                     </div>
                     
                     <div>
@@ -883,7 +779,6 @@ Climate change is one of the most pressing issues facing our planet today. Risin
             <div class="content-card">
                 <h2>Step 3: Record Sentence by Sentence</h2>
                 <p>Record one sentence at a time. Speak clearly and naturally!</p>
-                <p style="font-size: 13px; color: #6B7280; margin-top: -8px;">💡 Recording starts automatically - just speak when ready</p>
                 
                 <!-- Progress Indicator -->
                 <div style="background: #F3F4F6; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
@@ -921,10 +816,6 @@ Climate change is one of the most pressing issues facing our planet today. Risin
                 </div>
                 
                 <!-- Completed Sentences List -->
-                <div id="completed-sentences-container" style="display: none; margin-top: 20px;">
-                    <h3 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 12px;">✅ Completed Sentences:</h3>
-                    <div id="completed-sentences-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
-                </div>
             </div>
         </div>
 
@@ -992,37 +883,6 @@ Climate change is one of the most pressing issues facing our planet today. Risin
 
         <!-- Tips -->
         <div class="tips-card">
-            <h3 class="tips-title">💡 Quick Tips</h3>
-            <ul class="tips-list">
-                <li>
-                    <span class="tip-bullet">•</span>
-                    <span><strong>🎤 One-time permission:</strong> Microphone permission requested only once when entering Step 3</span>
-                </li>
-                <li>
-                    <span class="tip-bullet">•</span>
-                    <span><strong>📝 Sentence-by-sentence:</strong> Record one sentence at a time for best results</span>
-                </li>
-                <li>
-                    <span class="tip-bullet">•</span>
-                    <span><strong>Step 3 (Real-time):</strong> Get instant visual feedback as you speak each sentence</span>
-                </li>
-                <li>
-                    <span class="tip-bullet">•</span>
-                    <span><strong>Step 4 (Accurate):</strong> Combined Google Cloud evaluation after all sentences</span>
-                </li>
-                <li>
-                    <span class="tip-bullet">•</span>
-                    <span><strong>Multiple images:</strong> Upload multiple images at once - text from all images will be combined</span>
-                </li>
-                <li>
-                    <span class="tip-bullet">•</span>
-                    <span><strong>Cloud OCR:</strong> Works everywhere with Google Cloud Vision API (requires API key)</span>
-                </li>
-                <li>
-                    <span class="tip-bullet">•</span>
-                    <span><strong>Browser OCR:</strong> Free OCR without API (requires local file, download recommended)</span>
-                </li>
-            </ul>
         </div>
     </div>
 
