@@ -2417,10 +2417,24 @@
                 return;
             }
             
+            // 🔧 평가 시작 - 모든 버튼 숨김
+            document.getElementById('evaluate-btn').classList.add('hidden');
+            document.getElementById('stop-mic-btn').classList.add('hidden');
+            document.getElementById('start-mic-btn').classList.add('hidden');
+            document.getElementById('recording-status').classList.add('hidden');
+            
+            // Current sentence 영역도 처리 중 메시지로 변경
+            const currentSentenceEl = document.getElementById('current-recording-sentence');
+            if (currentSentenceEl) {
+                currentSentenceEl.innerHTML = '<span style="color: var(--duo-blue); font-weight: 700;">✅ All recordings complete! Analyzing...</span>';
+            }
+            
+            console.log('✅ All buttons hidden - starting evaluation');
+            
             // Show processing status
             const transcriptionEl = document.getElementById('transcription');
             transcriptionEl.style.display = 'block';
-            transcriptionEl.innerHTML = '<span style="color: #3B82F6;">⏳ Processing sentences individually with Google Cloud...</span>';
+            transcriptionEl.innerHTML = '<div style="text-align: center; padding: 20px;"><div style="color: var(--duo-blue); font-size: 18px; font-weight: 700;">⏳ Processing with Google Cloud...</div><div style="color: var(--text-gray); font-size: 14px; margin-top: 8px;">Please wait...</div></div>';
             
             try {
                 let fullTranscription = '';
@@ -2434,7 +2448,16 @@
                     }
                     
                     console.log(`Processing sentence ${i + 1}/${sentenceRecordings.length}, size: ${blob.size} bytes`);
-                    transcriptionEl.innerHTML = `<span style="color: #3B82F6;">⏳ Processing sentence ${i + 1} of ${sentenceRecordings.length}...</span>`;
+                    transcriptionEl.innerHTML = `
+                        <div style="text-align: center; padding: 20px;">
+                            <div style="color: var(--duo-blue); font-size: 18px; font-weight: 700; margin-bottom: 8px;">
+                                ⏳ Processing Sentence ${i + 1} of ${sentenceRecordings.length}
+                            </div>
+                            <div style="color: var(--text-gray); font-size: 14px;">
+                                Please wait...
+                            </div>
+                        </div>
+                    `;
                     
                     try {
                         // Convert to base64
@@ -2523,7 +2546,11 @@
                     errorMsg += error.message;
                 }
                 
-                transcriptionEl.innerHTML = `<span style="color: #EF4444;">${errorMsg}</span>`;
+                transcriptionEl.innerHTML = `<span style="color: #EF4444; font-size: 16px; font-weight: 600;">${errorMsg}</span>`;
+                
+                // 🔧 에러 발생 시 버튼 복구
+                document.getElementById('evaluate-btn').classList.remove('hidden');
+                console.log('⚠️ Error occurred - evaluate button restored');
             }
         });
         
