@@ -196,7 +196,7 @@
             font-size: 32px;
             font-weight: 900;
             color: var(--text-dark);
-            margin-bottom: 16px;
+            margin-bottom: 24px;
             text-align: center;
             letter-spacing: -0.5px;
         }
@@ -208,6 +208,31 @@
             font-size: 17px;
             text-align: center;
             font-weight: 600;
+        }
+
+        /* Spacing utilities */
+        .mb-4 {
+            margin-bottom: 16px;
+        }
+
+        .mb-6 {
+            margin-bottom: 24px;
+        }
+
+        .mb-8 {
+            margin-bottom: 32px;
+        }
+
+        .mt-4 {
+            margin-top: 16px;
+        }
+
+        .mt-6 {
+            margin-top: 24px;
+        }
+
+        .mt-8 {
+            margin-top: 32px;
         }
 
         /* 버튼 - Duolingo 스타일 */
@@ -274,6 +299,15 @@
             background: #E63939;
         }
 
+        .btn-warning {
+            background: var(--duo-yellow);
+            color: var(--text-dark);
+        }
+
+        .btn-warning:hover:not(:disabled) {
+            background: #F59E0B;
+        }
+
         .btn-gray {
             background: var(--text-gray);
             color: white;
@@ -281,6 +315,12 @@
 
         .btn-gray:hover {
             background: #666666;
+        }
+
+        .btn-small {
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 700;
         }
 
         /* 플렉스 레이아웃 */
@@ -310,6 +350,7 @@
             font-family: 'Nunito', sans-serif;
             font-weight: 600;
             transition: all 0.2s;
+            margin-bottom: 24px;
         }
 
         textarea:focus {
@@ -328,6 +369,8 @@
             font-family: 'Nunito', sans-serif;
             font-weight: 600;
             transition: all 0.2s;
+            margin-bottom: 16px;
+            width: 100%;
         }
 
         input:focus {
@@ -522,6 +565,8 @@
             background: white;
             cursor: pointer;
             transition: all 0.2s;
+            margin-bottom: 16px;
+            width: 100%;
         }
 
         select:focus {
@@ -572,6 +617,15 @@
 
         .toggle-switch.active .toggle-knob {
             left: 31px;
+        }
+
+        /* 레이블 */
+        label {
+            display: block;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
         }
 
         /* 반응형 */
@@ -656,15 +710,15 @@
                         Test API
                     </button>
                 </div>
-                <div id="api-test-result" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 8px;"></div>
+                <div id="api-test-result" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 16px;"></div>
             </div>
             
-            <div id="step1-error" class="error-box hidden">
+            <div id="step1-error" class="error-box hidden mb-6">
                 <span id="step1-error-text" class="error-text">Please enter at least 10 characters of text.</span>
             </div>
             
             <!-- Image Upload Section -->
-            <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 32px;">
                 <!-- OCR Mode Toggle -->
                 <div class="toggle-container">
                     <span class="toggle-label">🌐 Browser</span>
@@ -675,7 +729,7 @@
                     <input type="hidden" id="ocr-mode-value" value="cloud">
                 </div>
                 
-                <div id="drop-zone" style="border: 3px dashed #E5E7EB; border-radius: 16px; padding: 32px; text-align: center; background: #FAFAFA; cursor: pointer; transition: all 0.3s; margin-bottom: 16px;">
+                <div id="drop-zone" style="border: 3px dashed #E5E7EB; border-radius: 16px; padding: 32px; text-align: center; background: #FAFAFA; cursor: pointer; transition: all 0.3s; margin-bottom: 20px;">
                     <div style="font-size: 56px; margin-bottom: 12px;">📸</div>
                     <div style="font-size: 18px; font-weight: 800; color: var(--text-dark); margin-bottom: 8px;">
                         Upload Images
@@ -725,14 +779,15 @@
         <!-- Step 2: Listen -->
         <div id="step2-content" class="hidden animate-fadeIn">
             <div class="content-card">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 style="margin: 0;">Step 2: Listen to the Text</h2>
+                <h2 style="margin-bottom: 16px;">Step 2: Listen to the Text</h2>
+                
+                <div style="text-align: right; margin-bottom: 16px;">
                     <button id="toggle-settings-btn" class="btn-secondary btn-small">
-                        ⚙️ Voice Settings
+                        ⚙️ Settings
                     </button>
                 </div>
                 
-                <div id="voice-settings" class="settings-panel hidden">
+                <div id="voice-settings" class="settings-panel hidden mb-6">
                     <div class="mb-4">
                         <label>Voice Selection (Google Cloud Neural Voices)</label>
                         <select id="voice-select">
@@ -761,22 +816,15 @@
                     </div>
                 </div>
                 
-                <div class="text-box">
+                <div class="text-box mb-6">
                     <div id="display-text" class="text-content" style="line-height: 2;"></div>
                 </div>
                 
-                <div class="flex gap-4">
-                    <button id="step2-back-btn" class="btn-secondary">← Back</button>
-                    
-                    <div class="flex flex-1 gap-3">
-                        <button id="play-btn" class="btn-success flex-1">▶ Play Audio</button>
-                        <button id="pause-btn" class="btn-warning flex-1 hidden">⏸ Pause</button>
-                        <button id="resume-btn" class="btn-success flex-1 hidden">▶ Resume</button>
-                        <button id="stop-btn" class="btn-stop hidden">⏹</button>
-                        <button id="restart-btn" class="btn-restart hidden" title="Restart from beginning">🔄</button>
-                    </div>
-                    
-                    <button id="start-recording-btn" class="btn-primary">Start Recording →</button>
+                <div class="flex gap-4 mt-6">
+                    <button id="play-btn" class="btn-success flex-1">▶ Play</button>
+                    <button id="pause-btn" class="btn-warning flex-1 hidden">⏸ Pause</button>
+                    <button id="resume-btn" class="btn-success flex-1 hidden">▶ Resume</button>
+                    <button id="start-recording-btn" class="btn-primary flex-1">Start Recording →</button>
                 </div>
             </div>
         </div>
@@ -785,7 +833,7 @@
         <div id="step3-content" class="hidden animate-fadeIn">
             <div class="content-card">
                 <h2>Step 3: Record Sentence by Sentence</h2>
-                <p>Record one sentence at a time. Speak clearly and naturally!</p>
+                <p>Recording starts automatically. Speak clearly and click "Stop & Next" when done!</p>
                 
                 <!-- Progress Indicator -->
                 <div style="background: #F3F4F6; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
@@ -806,9 +854,9 @@
                 
                 <!-- Recording Status (Center) -->
                 <div style="text-align: center; padding: 40px 20px; margin-bottom: 20px;">
-                    <div id="recording-status" class="recording-status hidden" style="display: inline-flex; align-items: center; gap: 12px; background: #FEF3C7; padding: 16px 32px; border-radius: 12px; border: 2px solid #F59E0B;">
-                        <div class="recording-dot" style="width: 12px; height: 12px; background: #EF4444; border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
-                        <span class="recording-text" style="font-size: 18px; font-weight: 600; color: #92400E;">🎤 Recording...</span>
+                    <div id="recording-status" class="recording-status hidden">
+                        <div class="recording-dot"></div>
+                        <span class="recording-text">🎤 Recording...</span>
                     </div>
                 </div>
                 
@@ -816,10 +864,9 @@
                 <div id="transcription" style="display: none;"></div>
                 
                 <div class="flex gap-4">
-                    <button id="step3-back-btn" class="btn-secondary">← Back</button>
                     <button id="start-mic-btn" class="btn-danger flex-1">🎤 Start Recording</button>
                     <button id="stop-mic-btn" class="btn-gray flex-1 hidden">⏹ Stop & Next</button>
-                    <button id="evaluate-btn" class="btn-success hidden">Get Accurate Score →</button>
+                    <button id="evaluate-btn" class="btn-success flex-1 hidden">Get Accurate Score →</button>
                 </div>
                 
                 <!-- Completed Sentences List -->
@@ -1223,10 +1270,11 @@
             
             // Update UI
             updateSentenceDisplay();
-            document.getElementById('completed-sentences-container').style.display = 'none';
+            const completedContainer = document.getElementById('completed-sentences-container');
+            if (completedContainer) completedContainer.style.display = 'none';
             document.getElementById('evaluate-btn').classList.add('hidden');
             document.getElementById('transcription').style.display = 'none'; // Hide transcription
-            document.getElementById('start-mic-btn').classList.remove('hidden');
+            document.getElementById('start-mic-btn').classList.add('hidden'); // 🔧 처음부터 숨김 (자동 시작하므로)
             document.getElementById('stop-mic-btn').classList.add('hidden');
             
             console.log('Sentence recording prepared');
@@ -1236,6 +1284,8 @@
             setTimeout(() => {
                 startSentenceRecording().catch(err => {
                     console.error('Error auto-starting first recording:', err);
+                    // 자동 시작 실패 시에만 Start Recording 버튼 표시
+                    document.getElementById('start-mic-btn').classList.remove('hidden');
                 });
             }, 800); // 0.8초 대기 후 자동 시작 (UI 안정화)
         }
@@ -1728,8 +1778,6 @@
         document.getElementById('play-btn').addEventListener('click', playAudio);
         document.getElementById('pause-btn').addEventListener('click', pauseAudio);
         document.getElementById('resume-btn').addEventListener('click', resumeAudio);
-        document.getElementById('stop-btn').addEventListener('click', stopAudio);
-        document.getElementById('restart-btn').addEventListener('click', playAudio);
 
         async function playAudio() {
             const apiKey = document.getElementById('google-api-key').value.trim();
@@ -1762,8 +1810,6 @@
             // Update UI
             document.getElementById('play-btn').classList.add('hidden');
             document.getElementById('pause-btn').classList.remove('hidden');
-            document.getElementById('stop-btn').classList.remove('hidden');
-            document.getElementById('restart-btn').classList.remove('hidden');
             document.getElementById('start-recording-btn').disabled = true;
             isPlaying = true;
             
@@ -1919,8 +1965,6 @@
             document.getElementById('play-btn').classList.remove('hidden');
             document.getElementById('pause-btn').classList.add('hidden');
             document.getElementById('resume-btn').classList.add('hidden');
-            document.getElementById('stop-btn').classList.add('hidden');
-            document.getElementById('restart-btn').classList.add('hidden');
             document.getElementById('start-recording-btn').disabled = false;
         }
         
@@ -1936,18 +1980,6 @@
         }
 
         // Navigation
-        document.getElementById('step2-back-btn').addEventListener('click', function() {
-            stopAudio();
-            // Remove highlights
-            document.querySelectorAll('.sentence').forEach(span => {
-                span.style.backgroundColor = '';
-                span.style.color = '';
-                span.style.fontWeight = '';
-            });
-            updateProgress(1);
-        });
-
-
         document.getElementById('start-recording-btn').addEventListener('click', function() {
             stopAudio();
             // Remove TTS highlights
@@ -1961,37 +1993,6 @@
             updateProgress(3);
         });
 
-        document.getElementById('step3-back-btn').addEventListener('click', function() {
-            if (recognition) {
-                recognition.stop();
-                recognition = null;
-            }
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-            }
-            
-            // Stop and cleanup microphone stream
-            if (microphoneStream) {
-                microphoneStream.getTracks().forEach(track => track.stop());
-                microphoneStream = null;
-                console.log('Microphone stream stopped and cleaned up');
-            }
-            
-            // Clear timer
-            if (recordingTimer) {
-                clearInterval(recordingTimer);
-                recordingTimer = null;
-            }
-            
-            // Reset highlights
-            document.querySelectorAll('.sentence-word').forEach(span => {
-                span.style.backgroundColor = '';
-                span.style.color = '';
-                span.style.fontWeight = '';
-            });
-            
-            updateProgress(2);
-        });
 
         // Recording - Sentence by sentence
         document.getElementById('start-mic-btn').addEventListener('click', startSentenceRecording);
@@ -2046,6 +2047,12 @@
                 
                 audioChunks = [];
                 
+                // Error handler for MediaRecorder
+                mediaRecorder.onerror = (event) => {
+                    console.error('❌ MediaRecorder error:', event.error);
+                    alert('⚠️ Recording error: ' + event.error.message);
+                };
+                
                 mediaRecorder.ondataavailable = (event) => {
                     if (event.data.size > 0) {
                         audioChunks.push(event.data);
@@ -2054,14 +2061,26 @@
                 };
                 
                 // Create a promise that resolves when recording is saved
-                window.currentRecordingPromise = new Promise((resolve) => {
+                window.currentRecordingPromise = new Promise((resolve, reject) => {
                     mediaRecorder.onstop = () => {
                         console.log('MediaRecorder onstop fired');
                         console.log('Audio chunks collected:', audioChunks.length);
                         
+                        if (audioChunks.length === 0) {
+                            console.error('❌ No audio chunks collected!');
+                            reject(new Error('No audio data recorded'));
+                            return;
+                        }
+                        
                         // Save this sentence's recording
                         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                         console.log('Created blob, size:', audioBlob.size);
+                        
+                        if (audioBlob.size === 0) {
+                            console.error('❌ Audio blob is empty!');
+                            reject(new Error('Empty audio recording'));
+                            return;
+                        }
                         
                         sentenceRecordings[currentRecordingSentenceIndex] = audioBlob;
                         console.log('Saved to sentenceRecordings[' + currentRecordingSentenceIndex + ']');
@@ -2074,7 +2093,16 @@
                 });
                 
                 mediaRecorder.start();
-                console.log('MediaRecorder started');
+                console.log('✅ MediaRecorder.start() called');
+                
+                // Wait a bit and verify it's recording
+                setTimeout(() => {
+                    if (mediaRecorder && mediaRecorder.state === 'recording') {
+                        console.log('✅ MediaRecorder is actively recording');
+                    } else {
+                        console.error('❌ MediaRecorder failed to start recording. State:', mediaRecorder ? mediaRecorder.state : 'null');
+                    }
+                }, 100);
                 
                 // Start Real-time Speech Recognition
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -2201,6 +2229,7 @@
         async function stopSentenceRecording() {
             console.log('Stop sentence recording called');
             console.log('Current sentence index:', currentRecordingSentenceIndex);
+            console.log('MediaRecorder state:', mediaRecorder ? mediaRecorder.state : 'null');
             
             if (recognition) {
                 recognition.stop();
@@ -2209,22 +2238,40 @@
             }
             
             // Stop mediaRecorder and wait for blob to be saved
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                console.log('Stopping media recorder...');
-                mediaRecorder.stop();
-                
-                // Wait for the recording to be saved
-                try {
-                    const savedBlob = await window.currentRecordingPromise;
-                    console.log('Recording saved successfully, size:', savedBlob.size, 'bytes');
-                } catch (error) {
-                    console.error('Error saving recording:', error);
-                    alert('⚠️ Recording failed to save. Please try recording this sentence again.');
-                    return;
-                }
-            } else {
-                console.error('MediaRecorder not active or not found');
-                alert('⚠️ No recording found. Please record again.');
+            if (!mediaRecorder) {
+                console.error('❌ MediaRecorder is null - recording was never started');
+                alert('⚠️ Recording was not started. Click "Start Recording" button or wait for auto-start.');
+                // 버튼 상태 복구
+                document.getElementById('start-mic-btn').classList.remove('hidden');
+                document.getElementById('stop-mic-btn').classList.add('hidden');
+                document.getElementById('recording-status').classList.add('hidden');
+                return;
+            }
+            
+            if (mediaRecorder.state === 'inactive') {
+                console.error('❌ MediaRecorder is inactive - no active recording');
+                alert('⚠️ No active recording found. Please start recording first.');
+                // 버튼 상태 복구
+                document.getElementById('start-mic-btn').classList.remove('hidden');
+                document.getElementById('stop-mic-btn').classList.add('hidden');
+                document.getElementById('recording-status').classList.add('hidden');
+                return;
+            }
+            
+            console.log('✅ Stopping media recorder (state: ' + mediaRecorder.state + ')');
+            mediaRecorder.stop();
+            
+            // Wait for the recording to be saved
+            try {
+                const savedBlob = await window.currentRecordingPromise;
+                console.log('Recording saved successfully, size:', savedBlob.size, 'bytes');
+            } catch (error) {
+                console.error('Error saving recording:', error);
+                alert('⚠️ Recording failed to save. Please try recording this sentence again.');
+                // 버튼 상태 복구
+                document.getElementById('start-mic-btn').classList.remove('hidden');
+                document.getElementById('stop-mic-btn').classList.add('hidden');
+                document.getElementById('recording-status').classList.add('hidden');
                 return;
             }
             
@@ -2287,30 +2334,10 @@
             }
         }
         
-        // Add completed sentence to the list
+        // Add completed sentence to the list (disabled - UI removed)
         function addCompletedSentence(index) {
-            const container = document.getElementById('completed-sentences-container');
-            const list = document.getElementById('completed-sentences-list');
-            
-            container.style.display = 'block';
-            
-            const sentenceDiv = document.createElement('div');
-            sentenceDiv.style.cssText = 'padding: 12px; background: #F0FDF4; border: 1px solid #86EFAC; border-radius: 8px;';
-            
-            const sentenceText = recordingSentences[index];
-            const transcription = sentenceTranscriptions[index] || '(no speech detected)';
-            
-            sentenceDiv.innerHTML = `
-                <div style="display: flex; align-items: start; gap: 8px;">
-                    <span style="color: #10B981; font-size: 18px;">✓</span>
-                    <div style="flex: 1;">
-                        <div style="font-size: 14px; color: #374151; margin-bottom: 4px;"><strong>Sentence ${index + 1}:</strong> ${sentenceText}</div>
-                        <div style="font-size: 13px; color: #6B7280;"><em>You said:</em> "${transcription}"</div>
-                    </div>
-                </div>
-            `;
-            
-            list.appendChild(sentenceDiv);
+            // UI for completed sentences was removed for cleaner interface
+            console.log(`Sentence ${index + 1} completed`);
         }
         
         // Evaluate with Google Cloud STT for accurate scoring
@@ -2828,8 +2855,10 @@
             
             document.getElementById('transcription').style.display = 'none';
             document.getElementById('evaluate-btn').classList.add('hidden');
-            document.getElementById('completed-sentences-container').style.display = 'none';
-            document.getElementById('completed-sentences-list').innerHTML = '';
+            const completedContainer1 = document.getElementById('completed-sentences-container');
+            if (completedContainer1) completedContainer1.style.display = 'none';
+            const completedList1 = document.getElementById('completed-sentences-list');
+            if (completedList1) completedList1.innerHTML = '';
             
             if (recognition) {
                 recognition.stop();
@@ -2884,8 +2913,10 @@
             document.getElementById('image-previews').innerHTML = '';
             document.getElementById('image-name').textContent = '';
             document.getElementById('image-upload').value = '';
-            document.getElementById('completed-sentences-container').style.display = 'none';
-            document.getElementById('completed-sentences-list').innerHTML = '';
+            const completedContainer2 = document.getElementById('completed-sentences-container');
+            if (completedContainer2) completedContainer2.style.display = 'none';
+            const completedList2 = document.getElementById('completed-sentences-list');
+            if (completedList2) completedList2.innerHTML = '';
             
             stopAudio();
             if (recognition) {
