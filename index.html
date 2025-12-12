@@ -1,0 +1,2915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pronunciation Practice</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+    <style>
+        :root {
+            --duo-green: #58CC02;
+            --duo-blue: #1CB0F6;
+            --duo-yellow: #FFC800;
+            --duo-red: #FF4B4B;
+            --duo-gray: #AFAFAF;
+            --duo-light-gray: #F7F7F7;
+            --text-dark: #3C3C3C;
+            --text-gray: #777777;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #F7F7F7 0%, #FFFFFF 100%);
+            min-height: 100vh;
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* iPad 가로 최적화 */
+        @media (min-width: 768px) and (orientation: landscape) {
+            .container {
+                max-width: 900px;
+                padding: 40px;
+            }
+        }
+
+        /* 헤더 */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .title {
+            font-size: 42px;
+            font-weight: 900;
+            color: var(--duo-green);
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: var(--text-gray);
+            font-weight: 600;
+        }
+
+        /* 진행 표시 */
+        .progress-container {
+            background: white;
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .progress-steps {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 18px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 3px solid transparent;
+        }
+
+        .step-circle.active {
+            background: var(--duo-green);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(88, 204, 2, 0.2);
+        }
+
+        .step-circle.completed {
+            background: var(--duo-green);
+            color: white;
+        }
+
+        .step-circle.inactive {
+            background: var(--duo-light-gray);
+            color: var(--duo-gray);
+            border-color: #E5E5E5;
+        }
+
+        .step-label {
+            margin-top: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .step-label.active {
+            color: var(--duo-green);
+        }
+
+        .step-label.completed {
+            color: var(--duo-green);
+        }
+
+        .step-label.inactive {
+            color: var(--duo-gray);
+        }
+
+        .progress-line {
+            flex: 1;
+            height: 3px;
+            border-radius: 2px;
+            margin: 0 8px;
+            transition: all 0.3s;
+            align-self: flex-start;
+            margin-top: 18px;
+        }
+
+        .progress-line.completed {
+            background: var(--duo-green);
+        }
+
+        .progress-line.inactive {
+            background: #E5E5E5;
+        }
+
+        /* 컨텐츠 카드 */
+        .content-card {
+            background: white;
+            border-radius: 24px;
+            padding: 48px 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 2px solid #F0F0F0;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (min-width: 768px) and (orientation: landscape) {
+            .content-card {
+                padding: 56px 64px;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h2 {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            color: var(--text-gray);
+            line-height: 1.6;
+            margin-bottom: 24px;
+            font-size: 17px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* 버튼 - Duolingo 스타일 */
+        button {
+            padding: 18px 40px;
+            font-size: 18px;
+            font-weight: 800;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Nunito', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+            position: relative;
+            top: 0;
+        }
+
+        button:active:not(:disabled) {
+            top: 4px;
+            box-shadow: 0 0 0 rgba(0, 0, 0, 0.1);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--duo-green);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #4CAD02;
+            transform: scale(1.02);
+        }
+
+        .btn-secondary {
+            background: #E5E5E5;
+            color: var(--text-dark);
+        }
+
+        .btn-secondary:hover {
+            background: #D0D0D0;
+        }
+
+        .btn-success {
+            background: var(--duo-green);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #4CAD02;
+        }
+
+        .btn-danger {
+            background: var(--duo-red);
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #E63939;
+        }
+
+        .btn-gray {
+            background: var(--text-gray);
+            color: white;
+        }
+
+        .btn-gray:hover {
+            background: #666666;
+        }
+
+        /* 플렉스 레이아웃 */
+        .flex {
+            display: flex;
+        }
+
+        .gap-4 {
+            gap: 16px;
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+
+        /* 텍스트 영역 */
+        textarea {
+            width: 100%;
+            padding: 20px;
+            font-size: 18px;
+            line-height: 1.8;
+            color: var(--text-dark);
+            background: #F7F9FC;
+            border: 3px solid #E5E7EB;
+            border-radius: 16px;
+            resize: none;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--duo-blue);
+            background: white;
+        }
+
+        /* 입력 필드 */
+        input[type="text"],
+        input[type="number"] {
+            padding: 16px 20px;
+            font-size: 16px;
+            border: 3px solid #E5E7EB;
+            border-radius: 12px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--duo-blue);
+        }
+
+        /* 녹음 상태 */
+        .recording-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--duo-yellow);
+            padding: 20px 32px;
+            border-radius: 100px;
+            border: 4px solid #FFA500;
+            box-shadow: 0 8px 0 #FFA500;
+        }
+
+        .recording-dot {
+            width: 16px;
+            height: 16px;
+            background: var(--duo-red);
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 0.7;
+            }
+        }
+
+        .recording-text {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--text-dark);
+        }
+
+        /* 에러 박스 */
+        .error-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: #FEE2E2;
+            border: 3px solid var(--duo-red);
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+        .error-text {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--duo-red);
+        }
+
+        /* 진행 바 (문장별) */
+        .sentence-progress-container {
+            background: #E5E5E5;
+            height: 12px;
+            border-radius: 100px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .sentence-progress-bar {
+            background: linear-gradient(90deg, var(--duo-green), #4CAD02);
+            height: 100%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 100px;
+        }
+
+        /* 현재 문장 카드 */
+        .current-sentence-card {
+            background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+            border: 4px solid var(--duo-blue);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 8px 0 rgba(28, 176, 246, 0.2);
+        }
+
+        .sentence-label {
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--duo-blue);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sentence-text {
+            font-size: 24px;
+            line-height: 1.6;
+            color: var(--text-dark);
+            font-weight: 700;
+        }
+
+        /* 결과 카드 */
+        .result-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 3px solid #E5E5E5;
+            transition: all 0.2s;
+        }
+
+        .result-card:hover {
+            border-color: var(--duo-green);
+            box-shadow: 0 4px 12px rgba(88, 204, 2, 0.15);
+        }
+
+        .result-card.green {
+            border-color: var(--duo-green);
+            background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+        }
+
+        .result-card.yellow {
+            border-color: var(--duo-yellow);
+            background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+        }
+
+        .result-card.red {
+            border-color: var(--duo-red);
+            background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+        }
+
+        /* 점수 표시 */
+        .score-circle {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 32px;
+        }
+
+        .score-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 56px;
+            font-weight: 900;
+            color: var(--duo-green);
+        }
+
+        /* 애니메이션 */
+        .animate-fadeIn {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        /* 이미지 업로드 */
+        .image-upload-label {
+            display: inline-block;
+            padding: 18px 40px;
+            background: var(--duo-blue);
+            color: white;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 18px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 rgba(28, 176, 246, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .image-upload-label:hover {
+            background: #1698D1;
+            transform: scale(1.02);
+        }
+
+        .image-upload-label:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 rgba(28, 176, 246, 0.3);
+        }
+
+        /* 음성 선택 */
+        select {
+            padding: 16px 20px;
+            font-size: 16px;
+            border: 3px solid #E5E7EB;
+            border-radius: 12px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--duo-blue);
+        }
+
+        /* 토글 스위치 */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 56px;
+            height: 28px;
+            background: #E5E5E5;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: var(--duo-green);
+        }
+
+        .toggle-knob {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch.active .toggle-knob {
+            left: 31px;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 32px;
+            }
+
+            h2 {
+                font-size: 24px;
+            }
+
+            button {
+                padding: 16px 28px;
+                font-size: 16px;
+            }
+
+            .content-card {
+                padding: 32px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="title">Pronunciation Practice</h1>
+            <p class="subtitle">Listen, record, and improve your English pronunciation</p>
+        </div>
+        <!-- Progress Steps -->
+        <div class="progress-container">
+            <div class="progress-steps">
+                <div class="step">
+                    <div id="step1-circle" class="step-circle active">1</div>
+                    <span id="step1-label" class="step-label active">Setup</span>
+                </div>
+                <div id="progress1" class="progress-line inactive"></div>
+                
+                <div class="step">
+                    <div id="step2-circle" class="step-circle inactive">2</div>
+                    <span id="step2-label" class="step-label inactive">Listen</span>
+                </div>
+                <div id="progress2" class="progress-line inactive"></div>
+                
+                <div class="step">
+                    <div id="step3-circle" class="step-circle inactive">3</div>
+                    <span id="step3-label" class="step-label inactive">Record</span>
+                </div>
+                <div id="progress3" class="progress-line inactive"></div>
+                
+                <div class="step">
+                    <div id="step4-circle" class="step-circle inactive">4</div>
+                    <span id="step4-label" class="step-label inactive">Results</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: Enter Text -->
+        <div id="step1-content" class="content-card animate-fadeIn">
+            <h2>Step 1: Setup & Enter Text</h2>
+            
+            <!-- Google Cloud API Key -->
+            <div class="settings-panel" style="margin-bottom: 24px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <label style="margin: 0; font-weight: bold; font-size: 16px;">
+                        🔑 Google Cloud API Key
+                        <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="font-size: 12px; color: #3B82F6; margin-left: 8px;">(Get free key)</a>
+                    </label>
+                    <span id="key-saved-indicator" style="color: #10B981; font-size: 12px; font-weight: 600; display: none;">
+                        ✓ Saved
+                    </span>
+                </div>
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <input 
+                        type="password" 
+                        id="google-api-key" 
+                        placeholder="Enter once - saved automatically (required for all features)"
+                        style="flex: 1; padding: 12px; border: 2px solid #BFDBFE; border-radius: 8px; font-family: monospace;"
+                    />
+                    <button id="test-api-btn" class="btn-secondary" style="padding: 12px 24px; white-space: nowrap;">
+                        Test API
+                    </button>
+                </div>
+                <div id="api-test-result" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 8px;"></div>
+            </div>
+            
+            <div id="step1-error" class="error-box hidden">
+                <span id="step1-error-text" class="error-text">Please enter at least 10 characters of text.</span>
+            </div>
+            
+            <!-- Image Upload Section -->
+            <div style="margin-bottom: 20px;">
+                <!-- OCR Mode Toggle -->
+                <div class="toggle-container">
+                    <span class="toggle-label">🌐 Browser</span>
+                    <div class="toggle-switch active" id="ocr-toggle">
+                        <div class="toggle-knob"></div>
+                    </div>
+                    <span class="toggle-label">☁️ Cloud</span>
+                    <input type="hidden" id="ocr-mode-value" value="cloud">
+                </div>
+                
+                <div id="drop-zone" style="border: 3px dashed #E5E7EB; border-radius: 16px; padding: 32px; text-align: center; background: #FAFAFA; cursor: pointer; transition: all 0.3s; margin-bottom: 16px;">
+                    <div style="font-size: 56px; margin-bottom: 12px;">📸</div>
+                    <div style="font-size: 18px; font-weight: 800; color: var(--text-dark); margin-bottom: 8px;">
+                        Upload Images
+                    </div>
+                    <div style="font-size: 15px; color: var(--text-gray); font-weight: 600;">
+                        Click or drag & drop
+                    </div>
+                    <input type="file" id="image-upload" accept="image/*" multiple style="display: none;">
+                </div>
+                
+                <div style="text-align: center;">
+                    <span id="processing-status" style="color: var(--duo-blue); font-weight: 700; font-size: 15px; display: none;">
+                        ⏳ Processing...
+                    </span>
+                    <span id="image-name" style="color: var(--text-gray); font-size: 14px; font-weight: 600;"></span>
+                </div>
+                
+                <!-- Multiple Images Preview Container -->
+                <div id="images-container" style="display: none; margin-top: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 600; color: #4B5563;">Uploaded Images:</span>
+                        <button id="clear-all-images-btn" style="background: #EF4444; color: white; border: none; padding: 4px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600;">Clear All</button>
+                    </div>
+                    <div id="image-previews" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;">
+                        <!-- Image cards will be inserted here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 16px; color: #6B7280; font-weight: 600;">
+                - OR -
+            </div>
+            
+            <textarea
+                id="reading-text"
+                rows="10"
+                placeholder="Enter your text here..."
+            ></textarea>
+            
+            <div class="mt-6">
+                <button id="confirm-text-btn" class="btn-primary" style="width: 100%;">
+                    Continue to Listen →
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Listen -->
+        <div id="step2-content" class="hidden animate-fadeIn">
+            <div class="content-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 style="margin: 0;">Step 2: Listen to the Text</h2>
+                    <button id="toggle-settings-btn" class="btn-secondary btn-small">
+                        ⚙️ Voice Settings
+                    </button>
+                </div>
+                
+                <div id="voice-settings" class="settings-panel hidden">
+                    <div class="mb-4">
+                        <label>Voice Selection (Google Cloud Neural Voices)</label>
+                        <select id="voice-select">
+                            <option value="en-US-Neural2-A">US Female (Neural2-A) - Warm</option>
+                            <option value="en-US-Neural2-C">US Female (Neural2-C) - Professional</option>
+                            <option value="en-US-Neural2-E">US Female (Neural2-E) - Young</option>
+                            <option value="en-US-Neural2-F">US Female (Neural2-F) - Clear</option>
+                            <option value="en-US-Neural2-D">US Male (Neural2-D) - Deep</option>
+                            <option value="en-US-Neural2-I" selected>US Male (Neural2-I) - Natural</option>
+                            <option value="en-US-Neural2-J">US Male (Neural2-J) - Energetic</option>
+                            <option value="en-GB-Neural2-A">UK Female (Neural2-A) - British</option>
+                            <option value="en-GB-Neural2-B">UK Male (Neural2-B) - British</option>
+                            <option value="en-GB-Neural2-C">UK Female (Neural2-C) - British Elegant</option>
+                            <option value="en-AU-Neural2-A">AU Female (Neural2-A) - Australian</option>
+                            <option value="en-AU-Neural2-B">AU Male (Neural2-B) - Australian</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label>Speech Rate: <span id="rate-display">1.0</span>x</label>
+                        <div class="range-label">
+                            <span class="range-text">Slow</span>
+                            <input type="range" id="speech-rate" class="range-slider" min="0.5" max="1.5" step="0.1" value="1.0"/>
+                            <span class="range-text">Fast</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-box">
+                    <div id="display-text" class="text-content" style="line-height: 2;"></div>
+                </div>
+                
+                <div class="flex gap-4">
+                    <button id="step2-back-btn" class="btn-secondary">← Back</button>
+                    
+                    <div class="flex flex-1 gap-3">
+                        <button id="play-btn" class="btn-success flex-1">▶ Play Audio</button>
+                        <button id="pause-btn" class="btn-warning flex-1 hidden">⏸ Pause</button>
+                        <button id="resume-btn" class="btn-success flex-1 hidden">▶ Resume</button>
+                        <button id="stop-btn" class="btn-stop hidden">⏹</button>
+                        <button id="restart-btn" class="btn-restart hidden" title="Restart from beginning">🔄</button>
+                    </div>
+                    
+                    <button id="start-recording-btn" class="btn-primary">Start Recording →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Record -->
+        <div id="step3-content" class="hidden animate-fadeIn">
+            <div class="content-card">
+                <h2>Step 3: Record Sentence by Sentence</h2>
+                <p>Record one sentence at a time. Speak clearly and naturally!</p>
+                
+                <!-- Progress Indicator -->
+                <div style="background: #F3F4F6; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 600; color: #374151;">Progress:</span>
+                        <span id="sentence-progress" style="font-weight: 600; color: #7C3AED;">Sentence 1 of 1</span>
+                    </div>
+                    <div style="background: #E5E7EB; height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div id="sentence-progress-bar" style="background: linear-gradient(to right, #7C3AED, #A78BFA); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                
+                <!-- Current Sentence Display -->
+                <div style="background: #EEF2FF; border: 2px solid #7C3AED; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+                    <div style="font-size: 13px; font-weight: 600; color: #6366F1; margin-bottom: 8px;">CURRENT SENTENCE:</div>
+                    <div id="current-recording-sentence" style="font-size: 18px; line-height: 1.8; color: #1F2937;"></div>
+                </div>
+                
+                <!-- Recording Status (Center) -->
+                <div style="text-align: center; padding: 40px 20px; margin-bottom: 20px;">
+                    <div id="recording-status" class="recording-status hidden" style="display: inline-flex; align-items: center; gap: 12px; background: #FEF3C7; padding: 16px 32px; border-radius: 12px; border: 2px solid #F59E0B;">
+                        <div class="recording-dot" style="width: 12px; height: 12px; background: #EF4444; border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
+                        <span class="recording-text" style="font-size: 18px; font-weight: 600; color: #92400E;">🎤 Recording...</span>
+                    </div>
+                </div>
+                
+                <!-- Hidden transcription div for Google Cloud results -->
+                <div id="transcription" style="display: none;"></div>
+                
+                <div class="flex gap-4">
+                    <button id="step3-back-btn" class="btn-secondary">← Back</button>
+                    <button id="start-mic-btn" class="btn-danger flex-1">🎤 Start Recording</button>
+                    <button id="stop-mic-btn" class="btn-gray flex-1 hidden">⏹ Stop & Next</button>
+                    <button id="evaluate-btn" class="btn-success hidden">Get Accurate Score →</button>
+                </div>
+                
+                <!-- Completed Sentences List -->
+            </div>
+        </div>
+
+        <!-- Step 4: Results -->
+        <div id="step4-content" class="content-card hidden animate-fadeIn">
+            <h2>Step 4: Evaluation Results</h2>
+            
+            <div class="score-circle">
+                <svg style="transform: rotate(-90deg); width: 100%; height: 100%;">
+                    <circle cx="80" cy="80" r="70" stroke="#E5E7EB" stroke-width="12" fill="none" />
+                    <circle id="progress-circle" cx="80" cy="80" r="70" stroke="#10B981" stroke-width="12" fill="none" 
+                            stroke-dasharray="439.6" stroke-dashoffset="439.6" style="transition: all 1s;" />
+                </svg>
+                <div class="score-value">
+                    <div id="accuracy-score" class="score-number">0%</div>
+                    <div class="score-label">Accuracy</div>
+                </div>
+            </div>
+
+            <div id="feedback-box" class="feedback-box green">
+                <p id="feedback-text" class="feedback-text"></p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card blue">
+                    <div id="total-words" class="stat-number blue">0</div>
+                    <div class="stat-label">Total Words</div>
+                </div>
+                <div class="stat-card green">
+                    <div id="matched-words" class="stat-number green">0</div>
+                    <div class="stat-label">Matched Words</div>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h3 style="font-size: 18px; font-weight: bold; color: #1F2937; margin-bottom: 12px;">Sentence Analysis</h3>
+                
+                <!-- Word Color Legend -->
+                <div style="background: #F9FAFB; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #E5E7EB;">
+                    <div style="font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">📊 Word Color Guide:</div>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="background: #D1FAE5; color: #065F46; padding: 4px 12px; border-radius: 4px; font-weight: 600; font-size: 13px;">
+                                word
+                            </span>
+                            <span style="font-size: 13px; color: #6B7280;">= Correctly pronounced ✓</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="background: #FEE2E2; color: #991B1B; padding: 4px 12px; border-radius: 4px; font-weight: 600; font-size: 13px; text-decoration: underline;">
+                                word
+                            </span>
+                            <span style="font-size: 13px; color: #6B7280;">= Mispronounced or missed ✗</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="word-analysis"></div>
+            </div>
+
+            <div class="flex gap-4">
+                <button id="try-again-btn" class="btn-primary flex-1">Try Again</button>
+                <button id="reset-btn" class="btn-gray flex-1">Start New Practice</button>
+            </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="tips-card">
+        </div>
+    </div>
+
+    <script>
+        // Check browser support
+        if (!('speechSynthesis' in window) || !('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+            alert('Your browser does not support speech features. Please use Chrome, Edge, or Safari.');
+        }
+
+        // Global variables
+        let currentStep = 1;
+        let readingText = '';
+        let selectedVoice = 'en-US-Neural2-I';
+        let speechRate = 1.0;
+        let isPlaying = false;
+        let isPaused = false;
+        let transcription = '';
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let currentAudio = null;
+        let currentSentences = [];
+        let currentSentenceIndex = 0;
+        let isPlaybackStopped = false;
+        let recognition = null;
+        let isRealTimeMode = true;
+        let uploadedImages = []; // Store multiple images with their extracted text
+        let recordedAudioBlob = null; // Store recorded audio for Google Cloud evaluation
+        let realtimeTranscription = ''; // Store real-time transcription
+        let recordingTimer = null; // Timer for 60-second recording limit
+        let recordingStartTime = null; // Track recording start time
+        
+        // Sentence-by-sentence recording
+        let recordingSentences = []; // Split sentences for recording
+        let currentRecordingSentenceIndex = 0; // Current sentence being recorded
+        let sentenceRecordings = []; // Array to store each sentence's recording
+        let sentenceTranscriptions = []; // Array to store each sentence's transcription
+        let microphoneStream = null; // Store microphone stream for reuse
+
+        // Load Google Cloud settings from localStorage
+        function loadGoogleSettings() {
+            const savedKey = localStorage.getItem('googleApiKey');
+            if (savedKey) {
+                document.getElementById('google-api-key').value = savedKey;
+                document.getElementById('key-saved-indicator').style.display = 'inline';
+            }
+        }
+
+        // Save Google Cloud settings to localStorage
+        function saveGoogleSettings() {
+            const key = document.getElementById('google-api-key').value;
+            if (key) {
+                localStorage.setItem('googleApiKey', key);
+                // Show saved indicator
+                const indicator = document.getElementById('key-saved-indicator');
+                indicator.style.display = 'inline';
+                indicator.textContent = '✓ Saved';
+                
+                // Briefly show "Saved!" then return to "✓ Saved"
+                setTimeout(() => {
+                    indicator.textContent = '✓ Saved!';
+                    setTimeout(() => {
+                        indicator.textContent = '✓ Saved';
+                    }, 1000);
+                }, 100);
+            }
+        }
+
+        loadGoogleSettings();
+
+        // Test API key functionality
+        document.getElementById('test-api-btn').addEventListener('click', async function() {
+            const apiKey = document.getElementById('google-api-key').value.trim();
+            const resultDiv = document.getElementById('api-test-result');
+            
+            if (!apiKey) {
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = '#FEE2E2';
+                resultDiv.style.border = '2px solid #FCA5A5';
+                resultDiv.innerHTML = '<p style="margin: 0; color: #991B1B; font-weight: 600;">❌ Please enter an API key first</p>';
+                return;
+            }
+            
+            // Show loading
+            resultDiv.style.display = 'block';
+            resultDiv.style.background = '#EFF6FF';
+            resultDiv.style.border = '2px solid #BFDBFE';
+            resultDiv.innerHTML = '<p style="margin: 0; color: #1E40AF; font-weight: 600;">⏳ Testing APIs... (this may take a few seconds)</p>';
+            
+            const results = {
+                vision: { status: false, error: '' },
+                tts: { status: false, error: '' },
+                stt: { status: false, error: '' }
+            };
+            
+            // Test Vision API
+            try {
+                const visionResponse = await fetch(
+                    `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            requests: [{
+                                image: { content: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==' },
+                                features: [{ type: 'TEXT_DETECTION' }]
+                            }]
+                        })
+                    }
+                );
+                
+                if (visionResponse.ok) {
+                    results.vision.status = true;
+                } else {
+                    const errorData = await visionResponse.json().catch(() => ({}));
+                    results.vision.error = errorData.error?.message || `HTTP ${visionResponse.status}`;
+                }
+            } catch (e) {
+                results.vision.error = e.message;
+            }
+            
+            // Test TTS API
+            try {
+                const ttsResponse = await fetch(
+                    `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            input: { text: 'test' },
+                            voice: { languageCode: 'en-US', name: 'en-US-Neural2-A' },
+                            audioConfig: { audioEncoding: 'MP3' }
+                        })
+                    }
+                );
+                
+                if (ttsResponse.ok) {
+                    results.tts.status = true;
+                } else {
+                    const errorData = await ttsResponse.json().catch(() => ({}));
+                    results.tts.error = errorData.error?.message || `HTTP ${ttsResponse.status}`;
+                }
+            } catch (e) {
+                results.tts.error = e.message;
+            }
+            
+            // Test STT API
+            try {
+                const sttResponse = await fetch(
+                    `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            config: { encoding: 'LINEAR16', sampleRateHertz: 16000, languageCode: 'en-US' },
+                            audio: { content: 'test' }
+                        })
+                    }
+                );
+                
+                if (sttResponse.ok) {
+                    results.stt.status = true;
+                } else {
+                    const errorData = await sttResponse.json().catch(() => ({}));
+                    results.stt.error = errorData.error?.message || `HTTP ${sttResponse.status}`;
+                }
+            } catch (e) {
+                results.stt.error = e.message;
+            }
+            
+            // Display results
+            const allWorking = results.vision.status && results.tts.status && results.stt.status;
+            
+            let html = '<div style="font-size: 13px;">';
+            html += `<p style="margin: 0 0 12px 0; font-weight: 700; font-size: 14px;">${allWorking ? '✅ All APIs Working!' : '⚠️ Some APIs Have Issues'}</p>`;
+            
+            // Vision API
+            html += `<div style="margin-bottom: 8px; padding: 8px; background: ${results.vision.status ? '#D1FAE5' : '#FEE2E2'}; border-radius: 6px;">`;
+            html += `<p style="margin: 0; font-weight: 600;">Vision API: ${results.vision.status ? '✅ Working' : '❌ Failed'}</p>`;
+            if (!results.vision.status) {
+                html += `<p style="margin: 4px 0 0 0; font-size: 11px; color: #991B1B;">Error: ${results.vision.error}</p>`;
+            }
+            html += `</div>`;
+            
+            // TTS API
+            html += `<div style="margin-bottom: 8px; padding: 8px; background: ${results.tts.status ? '#D1FAE5' : '#FEE2E2'}; border-radius: 6px;">`;
+            html += `<p style="margin: 0; font-weight: 600;">Text-to-Speech: ${results.tts.status ? '✅ Working' : '❌ Failed'}</p>`;
+            if (!results.tts.status) {
+                html += `<p style="margin: 4px 0 0 0; font-size: 11px; color: #991B1B;">Error: ${results.tts.error}</p>`;
+            }
+            html += `</div>`;
+            
+            // STT API
+            html += `<div style="margin-bottom: 8px; padding: 8px; background: ${results.stt.status ? '#D1FAE5' : '#FEE2E2'}; border-radius: 6px;">`;
+            html += `<p style="margin: 0; font-weight: 600;">Speech-to-Text: ${results.stt.status ? '✅ Working' : '❌ Failed'}</p>`;
+            if (!results.stt.status) {
+                html += `<p style="margin: 4px 0 0 0; font-size: 11px; color: #991B1B;">Error: ${results.stt.error}</p>`;
+            }
+            html += `</div>`;
+            
+            if (!allWorking) {
+                html += '<div style="margin-top: 12px; padding: 12px; background: #FEF3C7; border-radius: 6px;">';
+                html += '<p style="margin: 0 0 8px 0; font-weight: 700; color: #92400E;">🔧 How to Fix:</p>';
+                html += '<ol style="margin: 0; padding-left: 20px; font-size: 12px; color: #92400E;">';
+                html += '<li style="margin-bottom: 4px;"><strong>Enable APIs:</strong> Make sure all 3 APIs are enabled in <a href="https://console.cloud.google.com/apis/library" target="_blank" style="color: #3B82F6;">Google Cloud Console</a></li>';
+                html += '<li style="margin-bottom: 4px;"><strong>Check API Key:</strong> Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: #3B82F6;">Credentials</a> → Click your API key</li>';
+                html += '<li style="margin-bottom: 4px;"><strong>Remove Restrictions:</strong> Under "API restrictions", select "Don\'t restrict key" (or add the 3 APIs)</li>';
+                html += '<li style="margin-bottom: 4px;"><strong>HTTP Referrer:</strong> Under "Application restrictions", select "None"</li>';
+                html += '<li><strong>Billing:</strong> Some APIs require billing enabled (free tier available)</li>';
+                html += '</ol>';
+                html += '</div>';
+            }
+            html += '</div>';
+            
+            resultDiv.style.background = allWorking ? '#D1FAE5' : '#FEF3C7';
+            resultDiv.style.border = allWorking ? '2px solid #6EE7B7' : '2px solid #FCD34D';
+            resultDiv.innerHTML = html;
+        });
+
+        // Update progress
+        async function updateProgress(step) {
+            console.log('updateProgress called with step:', step);
+            currentStep = step;
+            
+            try {
+                for (let i = 1; i <= 4; i++) {
+                    const circle = document.getElementById(`step${i}-circle`);
+                    const label = document.getElementById(`step${i}-label`);
+                    
+                    if (!circle || !label) {
+                        console.error(`Missing element: step${i}-circle or step${i}-label`);
+                        continue;
+                    }
+                    
+                    circle.className = 'step-circle';
+                    label.className = 'step-label';
+                    
+                    if (i < step) {
+                        circle.classList.add('completed');
+                        circle.textContent = '✓';
+                        label.classList.add('active');
+                    } else if (i === step) {
+                        circle.classList.add('active');
+                        circle.textContent = i;
+                        label.classList.add('active');
+                    } else {
+                        circle.classList.add('inactive');
+                        circle.textContent = i;
+                        label.classList.add('inactive');
+                    }
+                }
+                
+                for (let i = 1; i <= 3; i++) {
+                    const progress = document.getElementById(`progress${i}`);
+                    if (!progress) {
+                        console.error(`Missing element: progress${i}`);
+                        continue;
+                    }
+                    progress.className = 'progress-line';
+                    if (i < step) {
+                        progress.classList.add('completed');
+                    } else {
+                        progress.classList.add('inactive');
+                    }
+                }
+                
+                const step1Content = document.getElementById('step1-content');
+                const step2Content = document.getElementById('step2-content');
+                const step3Content = document.getElementById('step3-content');
+                const step4Content = document.getElementById('step4-content');
+                
+                if (!step1Content || !step2Content || !step3Content || !step4Content) {
+                    console.error('Missing step content elements!');
+                    return;
+                }
+                
+                step1Content.classList.toggle('hidden', step !== 1);
+                step2Content.classList.toggle('hidden', step !== 2);
+                step3Content.classList.toggle('hidden', step !== 3);
+                step4Content.classList.toggle('hidden', step !== 4);
+                
+                // When entering Step 3, prepare sentence-by-sentence recording
+                if (step === 3) {
+                    await prepareSentenceRecording();
+                }
+                
+                console.log('updateProgress completed successfully. Current visible step:', step);
+                
+            } catch (error) {
+                console.error('Error in updateProgress:', error);
+            }
+        }
+        
+        // Prepare sentences for recording
+        async function prepareSentenceRecording() {
+            console.log('Preparing sentence recording...');
+            console.log('Reading text:', readingText);
+            
+            // Split text into sentences
+            recordingSentences = readingText.match(/[^.!?]+[.!?]+/g) || [readingText];
+            recordingSentences = recordingSentences.map(s => s.trim()).filter(s => s.length > 0);
+            
+            console.log('Split into sentences:', recordingSentences);
+            console.log('Total sentences:', recordingSentences.length);
+            
+            // Reset recording state
+            currentRecordingSentenceIndex = 0;
+            sentenceRecordings = [];
+            sentenceTranscriptions = [];
+            
+            // Request microphone access ONCE for all sentences (only if not already granted)
+            if (!microphoneStream) {
+                try {
+                    console.log('🎤 Requesting microphone access for the first time...');
+                    microphoneStream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            channelCount: 1,
+                            echoCancellation: true,
+                            noiseSuppression: true
+                        }
+                    });
+                    console.log('✅ Microphone access granted - will be reused for all sentences');
+                } catch (error) {
+                    console.error('Microphone access error:', error);
+                    alert('⚠️ Microphone access denied. Please allow microphone access to record.\n\nError: ' + error.message);
+                    updateProgress(2); // Go back to Step 2
+                    return;
+                }
+            } else {
+                console.log('✅ Reusing existing microphone stream (no permission prompt)');
+            }
+            
+            // Update UI
+            updateSentenceDisplay();
+            document.getElementById('completed-sentences-container').style.display = 'none';
+            document.getElementById('evaluate-btn').classList.add('hidden');
+            document.getElementById('transcription').style.display = 'none'; // Hide transcription
+            document.getElementById('start-mic-btn').classList.remove('hidden');
+            document.getElementById('stop-mic-btn').classList.add('hidden');
+            
+            console.log('Sentence recording prepared');
+            
+            // 🎯 자동으로 첫 문장 녹음 시작
+            console.log('🎤 Auto-starting first sentence recording...');
+            setTimeout(() => {
+                startSentenceRecording().catch(err => {
+                    console.error('Error auto-starting first recording:', err);
+                });
+            }, 800); // 0.8초 대기 후 자동 시작 (UI 안정화)
+        }
+        
+        // Update current sentence display and progress
+        function updateSentenceDisplay() {
+            console.log('Updating sentence display for index:', currentRecordingSentenceIndex);
+            
+            const currentSentence = recordingSentences[currentRecordingSentenceIndex];
+            const totalSentences = recordingSentences.length;
+            const progress = ((currentRecordingSentenceIndex + 1) / totalSentences) * 100;
+            
+            console.log('Current sentence:', currentSentence);
+            console.log('Progress:', progress + '%');
+            
+            // Update current sentence
+            const sentenceElement = document.getElementById('current-recording-sentence');
+            if (sentenceElement) {
+                sentenceElement.innerHTML = highlightWordsInSentence(currentSentence);
+            } else {
+                console.error('Element not found: current-recording-sentence');
+            }
+            
+            // Update progress
+            const progressElement = document.getElementById('sentence-progress');
+            if (progressElement) {
+                progressElement.textContent = `Sentence ${currentRecordingSentenceIndex + 1} of ${totalSentences}`;
+            } else {
+                console.error('Element not found: sentence-progress');
+            }
+            
+            const progressBarElement = document.getElementById('sentence-progress-bar');
+            if (progressBarElement) {
+                progressBarElement.style.width = `${progress}%`;
+            } else {
+                console.error('Element not found: sentence-progress-bar');
+            }
+        }
+        
+        // Display sentence (no highlighting)
+        function highlightWordsInSentence(sentence) {
+            // Just return the sentence as-is, no span wrapping
+            return sentence;
+        }
+
+        // Step 1
+        document.getElementById('confirm-text-btn').addEventListener('click', function(e) {
+            console.log('Confirm button clicked');
+            e.preventDefault(); // Prevent any default behavior
+            
+            const textArea = document.getElementById('reading-text');
+            if (!textArea) {
+                console.error('Textarea not found!');
+                alert('Error: Text area not found. Please refresh the page.');
+                return;
+            }
+            
+            readingText = textArea.value.trim();
+            console.log('Reading text:', readingText);
+            console.log('Text length:', readingText.length);
+            
+            if (readingText.length < 10) {
+                const errorBox = document.getElementById('step1-error');
+                const errorText = document.getElementById('step1-error-text');
+                errorBox.classList.remove('hidden');
+                errorText.textContent = `Please enter at least 10 characters. Current: ${readingText.length} characters.`;
+                console.log('Text too short, showing error');
+                
+                // Scroll to error
+                errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            
+            document.getElementById('step1-error').classList.add('hidden');
+            
+            try {
+                // Split text into sentences and display with highlighting capability
+                const sentences = readingText.match(/[^.!?]+[.!?]+/g) || [readingText];
+                console.log('Sentences found:', sentences.length);
+                
+                let displayHTML = '';
+                sentences.forEach((sentence, index) => {
+                    displayHTML += `<span class="sentence" data-index="${index}" style="transition: background-color 0.3s;">${sentence.trim()} </span>`;
+                });
+                
+                const displayElement = document.getElementById('display-text');
+                if (!displayElement) {
+                    console.error('Display text element not found!');
+                    alert('Error: Display element not found. Please refresh the page.');
+                    return;
+                }
+                
+                displayElement.innerHTML = displayHTML;
+                console.log('Display text updated successfully');
+                
+                // Progress to Step 2
+                console.log('Calling updateProgress(2)');
+                updateProgress(2);
+                console.log('Progress updated to Step 2');
+                
+            } catch (error) {
+                console.error('Error in confirm-text-btn:', error);
+                alert('Error processing text: ' + error.message + '\n\nPlease try again or refresh the page.');
+            }
+        });
+
+        // OCR Mode Toggle
+        const ocrToggle = document.getElementById('ocr-toggle');
+        const ocrModeValue = document.getElementById('ocr-mode-value');
+        
+        ocrToggle.addEventListener('click', () => {
+            ocrToggle.classList.toggle('active');
+            if (ocrToggle.classList.contains('active')) {
+                ocrModeValue.value = 'cloud';
+            } else {
+                ocrModeValue.value = 'browser';
+            }
+        });
+
+        // Image upload handling
+        const dropZone = document.getElementById('drop-zone');
+        const imageUpload = document.getElementById('image-upload');
+        
+        // Click to upload
+        dropZone.addEventListener('click', () => {
+            imageUpload.click();
+        });
+        
+        // Drag and drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#8B5CF6';
+            dropZone.style.background = '#EDE9FE';
+        });
+        
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#C7D2FE';
+            dropZone.style.background = '#F5F3FF';
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#C7D2FE';
+            dropZone.style.background = '#F5F3FF';
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                processImage(file);
+            } else {
+                alert('Please drop an image file');
+            }
+        });
+        
+        imageUpload.addEventListener('change', async function(e) {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                for (const file of files) {
+                    await processImage(file);
+                }
+            }
+            // Reset input so same file can be selected again
+            e.target.value = '';
+        });
+        
+        // Clear all images button
+        document.getElementById('clear-all-images-btn').addEventListener('click', function() {
+            uploadedImages = [];
+            document.getElementById('image-previews').innerHTML = '';
+            document.getElementById('images-container').style.display = 'none';
+            updateCombinedText();
+        });
+        
+        // Remove individual image
+        function removeImage(imageId) {
+            uploadedImages = uploadedImages.filter(img => img.id !== imageId);
+            updateImagePreviews();
+            updateCombinedText();
+            
+            if (uploadedImages.length === 0) {
+                document.getElementById('images-container').style.display = 'none';
+            }
+        }
+        
+        // Make removeImage accessible globally for onclick
+        window.removeImage = removeImage;
+        
+        // Update combined text from all images
+        function updateCombinedText() {
+            const combinedText = uploadedImages
+                .map(img => img.text)
+                .filter(text => text && text.trim())
+                .join('\n\n');
+            
+            document.getElementById('reading-text').value = combinedText;
+        }
+        
+        // Update image previews display
+        function updateImagePreviews() {
+            const container = document.getElementById('image-previews');
+            container.innerHTML = '';
+            
+            uploadedImages.forEach(imageData => {
+                const card = document.createElement('div');
+                card.style.cssText = 'position: relative; border: 2px solid #C7D2FE; border-radius: 8px; padding: 8px; background: #F5F3FF;';
+                
+                card.innerHTML = `
+                    <button onclick="removeImage('${imageData.id}')" style="position: absolute; top: 4px; right: 4px; background: #EF4444; color: white; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; z-index: 10;">×</button>
+                    <img src="${imageData.dataUrl}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 4px;">
+                    <div style="font-size: 11px; color: #6B7280; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${imageData.name}</div>
+                    <div style="font-size: 10px; color: #059669; text-align: center; margin-top: 2px;">${imageData.wordCount} words</div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+        
+        async function processImage(file) {
+            const ocrMode = document.getElementById('ocr-mode-value').value;
+            
+            const imageId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            if (ocrMode === 'browser') {
+                await processImageWithTesseract(file, imageId);
+            } else {
+                await processImageWithCloud(file, imageId);
+            }
+        }
+        
+        // Browser OCR with Tesseract.js
+        async function processImageWithTesseract(file, imageId) {
+            // Show processing status
+            document.getElementById('processing-status').style.display = 'inline';
+            document.getElementById('processing-status').textContent = `⏳ Processing ${file.name}...`;
+            document.getElementById('image-name').textContent = file.name;
+            
+            try {
+                // Get image data URL
+                const dataUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+                
+                // OCR with Tesseract.js - specify worker path explicitly
+                const { createWorker } = Tesseract;
+                const worker = await createWorker('eng', 1, {
+                    workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js',
+                    langPath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5/lang-data',
+                    corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5',
+                    logger: info => {
+                        if (info.status === 'recognizing text') {
+                            const progress = Math.round(info.progress * 100);
+                            document.getElementById('processing-status').textContent = `⏳ ${file.name}: ${progress}%`;
+                        }
+                    }
+                });
+                
+                const result = await worker.recognize(file);
+                await worker.terminate();
+                
+                let extractedText = result.data.text.trim();
+                
+                if (extractedText.length < 10) {
+                    alert(`Could not extract enough text from ${file.name}. Please try a clearer image.`);
+                    document.getElementById('processing-status').style.display = 'none';
+                    return;
+                }
+                
+                // Basic text cleaning
+                extractedText = extractedText
+                    .replace(/\s+/g, ' ')
+                    .replace(/\s+([.,!?;:])/g, '$1')
+                    .replace(/([.,!?;:])([A-Z])/g, '$1 $2')
+                    .replace(/\n{3,}/g, '\n\n')
+                    .replace(/^\s+/gm, '')
+                    .trim();
+                
+                // Count words
+                const wordCount = extractedText.split(/\s+/).length;
+                
+                // Add to uploaded images array
+                uploadedImages.push({
+                    id: imageId,
+                    name: file.name,
+                    dataUrl: dataUrl,
+                    text: extractedText,
+                    wordCount: wordCount
+                });
+                
+                // Update UI
+                document.getElementById('images-container').style.display = 'block';
+                updateImagePreviews();
+                updateCombinedText();
+                
+                document.getElementById('processing-status').textContent = '✅ Done!';
+                setTimeout(() => {
+                    document.getElementById('processing-status').style.display = 'none';
+                    document.getElementById('image-name').textContent = '';
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Tesseract error:', error);
+                
+                // Check if it's a CORS/Worker error
+                if (error.message && (error.message.includes('Worker') || error.message.includes('SecurityError'))) {
+                    alert(`⚠️ Browser OCR requires local file execution.\n\n` +
+                          `Please download this HTML file and open it locally, or use Cloud OCR mode instead.\n\n` +
+                          `Error: ${error.message}`);
+                } else {
+                    alert(`Error processing ${file.name} with browser OCR. Please try again or use Cloud mode.\n\nError: ${error.message}`);
+                }
+                
+                document.getElementById('processing-status').style.display = 'none';
+                document.getElementById('image-name').textContent = '';
+            }
+        }
+        
+        // Cloud OCR with Google Vision API
+        async function processImageWithCloud(file, imageId) {
+            const apiKey = document.getElementById('google-api-key').value.trim();
+            
+            if (!apiKey) {
+                alert('⚠️ Please enter your Google Cloud API key first (at the top of Step 1), then upload the image.');
+                return;
+            }
+            
+            // Show processing status
+            document.getElementById('processing-status').style.display = 'inline';
+            document.getElementById('processing-status').textContent = `⏳ Processing ${file.name}...`;
+            document.getElementById('image-name').textContent = file.name;
+            
+            try {
+                // Convert image to base64 and get data URL
+                const base64Data = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = () => reject(new Error('Failed to read file'));
+                    reader.readAsDataURL(file);
+                });
+                
+                const dataUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+                
+                // Call Google Cloud Vision API
+                const response = await fetch(
+                    `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            requests: [
+                                {
+                                    image: {
+                                        content: base64Data
+                                    },
+                                    features: [
+                                        {
+                                            type: 'TEXT_DETECTION'
+                                        }
+                                    ]
+                                }
+                            ]
+                        })
+                    }
+                );
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMsg = errorData.error?.message || response.statusText;
+                    throw new Error(`API Error (${response.status}): ${errorMsg}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error.message || 'Vision API error');
+                }
+                
+                if (!data.responses || !data.responses[0]) {
+                    throw new Error('No response from Vision API');
+                }
+                
+                const result = data.responses[0];
+                
+                if (result.error) {
+                    throw new Error(result.error.message || 'Vision API error');
+                }
+                
+                if (!result.textAnnotations || result.textAnnotations.length === 0) {
+                    alert(`Could not extract text from ${file.name}. Please try a clearer image.`);
+                    document.getElementById('processing-status').style.display = 'none';
+                    return;
+                }
+                
+                // Get the full text
+                let extractedText = result.textAnnotations[0].description.trim();
+                
+                if (extractedText.length < 10) {
+                    alert(`Could not extract enough text from ${file.name}. Please try a clearer image.`);
+                    document.getElementById('processing-status').style.display = 'none';
+                    return;
+                }
+                
+                // Basic text cleaning
+                extractedText = extractedText
+                    .replace(/\s+/g, ' ')
+                    .replace(/\s+([.,!?;:])/g, '$1')
+                    .replace(/([.,!?;:])([A-Z])/g, '$1 $2')
+                    .replace(/\n{3,}/g, '\n\n')
+                    .replace(/^\s+/gm, '')
+                    .trim();
+                
+                // Count words
+                const wordCount = extractedText.split(/\s+/).length;
+                
+                // Add to uploaded images array
+                uploadedImages.push({
+                    id: imageId,
+                    name: file.name,
+                    dataUrl: dataUrl,
+                    text: extractedText,
+                    wordCount: wordCount
+                });
+                
+                // Update UI
+                document.getElementById('images-container').style.display = 'block';
+                updateImagePreviews();
+                updateCombinedText();
+                
+                document.getElementById('processing-status').textContent = '✅ Done!';
+                setTimeout(() => {
+                    document.getElementById('processing-status').style.display = 'none';
+                    document.getElementById('image-name').textContent = '';
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error processing image:', error);
+                
+                let errorMessage = `❌ Error processing ${file.name}\n\n`;
+                
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage += 'Network error or CORS issue.\n\nPossible solutions:\n';
+                    errorMessage += '1. Check your internet connection\n';
+                    errorMessage += '2. Verify your API key is correct\n';
+                    errorMessage += '3. Make sure Vision API is enabled';
+                } else if (error.message.includes('API_KEY_INVALID') || error.message.includes('400')) {
+                    errorMessage += 'Invalid API key.\n\nPlease check:\n';
+                    errorMessage += '1. API key is copied correctly\n';
+                    errorMessage += '2. No extra spaces in the key\n';
+                    errorMessage += '3. Vision API is enabled';
+                } else if (error.message.includes('403')) {
+                    errorMessage += 'Vision API is not enabled or quota exceeded.\n\n';
+                    errorMessage += 'Enable it at: https://console.cloud.google.com/apis/library/vision.googleapis.com';
+                } else if (error.message.includes('quota')) {
+                    errorMessage += 'API quota exceeded.\n\n';
+                    errorMessage += 'Check your usage at Google Cloud Console.';
+                } else {
+                    errorMessage += error.message;
+                }
+                
+                alert(errorMessage);
+                document.getElementById('processing-status').style.display = 'none';
+                document.getElementById('image-name').textContent = '';
+            }
+        }
+
+        // Voice settings
+        document.getElementById('toggle-settings-btn').addEventListener('click', function() {
+            document.getElementById('voice-settings').classList.toggle('hidden');
+        });
+
+        document.getElementById('voice-select').addEventListener('change', function() {
+            selectedVoice = this.value;
+        });
+
+        document.getElementById('speech-rate').addEventListener('input', function() {
+            speechRate = parseFloat(this.value);
+            document.getElementById('rate-display').textContent = speechRate.toFixed(1);
+        });
+
+        // Audio controls with Google Cloud TTS
+        document.getElementById('play-btn').addEventListener('click', playAudio);
+        document.getElementById('pause-btn').addEventListener('click', pauseAudio);
+        document.getElementById('resume-btn').addEventListener('click', resumeAudio);
+        document.getElementById('stop-btn').addEventListener('click', stopAudio);
+        document.getElementById('restart-btn').addEventListener('click', playAudio);
+
+        async function playAudio() {
+            const apiKey = document.getElementById('google-api-key').value.trim();
+            
+            if (!apiKey) {
+                alert('⚠️ Please enter your Google Cloud API key first in Step 1, then try again.');
+                return;
+            }
+            
+            saveGoogleSettings();
+            
+            // Stop any existing audio
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            
+            // Split text into sentences
+            currentSentences = readingText.match(/[^.!?]+[.!?]+/g) || [readingText];
+            currentSentenceIndex = 0;
+            isPlaybackStopped = false;
+            
+            // Remove all highlights
+            document.querySelectorAll('.sentence').forEach(span => {
+                span.style.backgroundColor = '';
+                span.style.color = '';
+                span.style.fontWeight = '';
+            });
+            
+            // Update UI
+            document.getElementById('play-btn').classList.add('hidden');
+            document.getElementById('pause-btn').classList.remove('hidden');
+            document.getElementById('stop-btn').classList.remove('hidden');
+            document.getElementById('restart-btn').classList.remove('hidden');
+            document.getElementById('start-recording-btn').disabled = true;
+            isPlaying = true;
+            
+            // Start playing sentences
+            await playNextSentence(apiKey);
+        }
+
+        async function playNextSentence(apiKey) {
+            if (isPlaybackStopped || currentSentenceIndex >= currentSentences.length) {
+                // All sentences played
+                isPlaying = false;
+                isPaused = false;
+                resetAudioButtons();
+                // Remove all highlights
+                document.querySelectorAll('.sentence').forEach(span => {
+                    span.style.backgroundColor = '';
+                    span.style.color = '';
+                    span.style.fontWeight = '';
+                });
+                return;
+            }
+            
+            const sentence = currentSentences[currentSentenceIndex].trim();
+            
+            // Highlight current sentence
+            document.querySelectorAll('.sentence').forEach((span, index) => {
+                if (index === currentSentenceIndex) {
+                    span.style.backgroundColor = '#FEF08A';
+                    span.style.color = '#000';
+                    span.style.fontWeight = 'bold';
+                } else if (index < currentSentenceIndex) {
+                    span.style.backgroundColor = '';
+                    span.style.color = '#9CA3AF';
+                    span.style.fontWeight = 'normal';
+                } else {
+                    span.style.backgroundColor = '';
+                    span.style.color = '';
+                    span.style.fontWeight = '';
+                }
+            });
+            
+            try {
+                // Call Google Cloud TTS for this sentence
+                const response = await fetch(
+                    `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            input: { text: sentence },
+                            voice: {
+                                languageCode: selectedVoice.substring(0, 5),
+                                name: selectedVoice
+                            },
+                            audioConfig: {
+                                audioEncoding: 'MP3',
+                                speakingRate: speechRate
+                            }
+                        })
+                    }
+                );
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error.message || 'TTS API error');
+                }
+                
+                // Convert base64 audio to playable format
+                const audioContent = data.audioContent;
+                const audioBlob = base64ToBlob(audioContent, 'audio/mp3');
+                const audioUrl = URL.createObjectURL(audioBlob);
+                
+                currentAudio = new Audio(audioUrl);
+                
+                currentAudio.onended = function() {
+                    URL.revokeObjectURL(audioUrl);
+                    currentSentenceIndex++;
+                    if (!isPlaybackStopped) {
+                        playNextSentence(apiKey);
+                    }
+                };
+                
+                currentAudio.onerror = function() {
+                    alert('Error playing audio');
+                    resetAudioButtons();
+                    URL.revokeObjectURL(audioUrl);
+                };
+                
+                if (!isPlaybackStopped) {
+                    await currentAudio.play();
+                }
+                
+            } catch (error) {
+                console.error('Google Cloud TTS error:', error);
+                
+                let errorMsg = 'Error: ' + error.message;
+                if (error.message.includes('API key')) {
+                    errorMsg = 'Invalid API key. Please check your Google Cloud API key.';
+                } else if (error.message.includes('quota')) {
+                    errorMsg = 'API quota exceeded. Check your Google Cloud console.';
+                } else if (error.message.includes('not enabled')) {
+                    errorMsg = 'Text-to-Speech API is not enabled. Enable it in Google Cloud Console: https://console.cloud.google.com/apis/library/texttospeech.googleapis.com';
+                }
+                
+                alert(errorMsg);
+                resetAudioButtons();
+            }
+        }
+
+        function pauseAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                isPaused = true;
+                document.getElementById('pause-btn').classList.add('hidden');
+                document.getElementById('resume-btn').classList.remove('hidden');
+                document.getElementById('start-recording-btn').disabled = false;
+            }
+        }
+
+        function resumeAudio() {
+            if (currentAudio && isPaused) {
+                currentAudio.play();
+                isPaused = false;
+                document.getElementById('resume-btn').classList.add('hidden');
+                document.getElementById('pause-btn').classList.remove('hidden');
+                document.getElementById('start-recording-btn').disabled = true;
+            }
+        }
+
+        function stopAudio() {
+            isPlaybackStopped = true;
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            isPlaying = false;
+            isPaused = false;
+            
+            // Remove all highlights
+            document.querySelectorAll('.sentence').forEach(span => {
+                span.style.backgroundColor = '';
+                span.style.color = '';
+                span.style.fontWeight = '';
+            });
+            
+            resetAudioButtons();
+        }
+
+        function resetAudioButtons() {
+            document.getElementById('play-btn').classList.remove('hidden');
+            document.getElementById('pause-btn').classList.add('hidden');
+            document.getElementById('resume-btn').classList.add('hidden');
+            document.getElementById('stop-btn').classList.add('hidden');
+            document.getElementById('restart-btn').classList.add('hidden');
+            document.getElementById('start-recording-btn').disabled = false;
+        }
+        
+        // Helper function to convert base64 to blob
+        function base64ToBlob(base64, mimeType) {
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            return new Blob([byteArray], { type: mimeType });
+        }
+
+        // Navigation
+        document.getElementById('step2-back-btn').addEventListener('click', function() {
+            stopAudio();
+            // Remove highlights
+            document.querySelectorAll('.sentence').forEach(span => {
+                span.style.backgroundColor = '';
+                span.style.color = '';
+                span.style.fontWeight = '';
+            });
+            updateProgress(1);
+        });
+
+
+        document.getElementById('start-recording-btn').addEventListener('click', function() {
+            stopAudio();
+            // Remove TTS highlights
+            document.querySelectorAll('.sentence').forEach(span => {
+                span.style.backgroundColor = '';
+                span.style.color = '';
+                span.style.fontWeight = '';
+            });
+            
+            // Move to Step 3 (prepareSentenceRecording will be called automatically)
+            updateProgress(3);
+        });
+
+        document.getElementById('step3-back-btn').addEventListener('click', function() {
+            if (recognition) {
+                recognition.stop();
+                recognition = null;
+            }
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            
+            // Stop and cleanup microphone stream
+            if (microphoneStream) {
+                microphoneStream.getTracks().forEach(track => track.stop());
+                microphoneStream = null;
+                console.log('Microphone stream stopped and cleaned up');
+            }
+            
+            // Clear timer
+            if (recordingTimer) {
+                clearInterval(recordingTimer);
+                recordingTimer = null;
+            }
+            
+            // Reset highlights
+            document.querySelectorAll('.sentence-word').forEach(span => {
+                span.style.backgroundColor = '';
+                span.style.color = '';
+                span.style.fontWeight = '';
+            });
+            
+            updateProgress(2);
+        });
+
+        // Recording - Sentence by sentence
+        document.getElementById('start-mic-btn').addEventListener('click', startSentenceRecording);
+        document.getElementById('stop-mic-btn').addEventListener('click', stopSentenceRecording);
+        
+        // Start recording current sentence
+        async function startSentenceRecording() {
+            console.log('Start recording clicked');
+            console.log('Current sentence index:', currentRecordingSentenceIndex);
+            console.log('Total sentences:', recordingSentences.length);
+            console.log('Recording sentences:', recordingSentences);
+            
+            if (!recordingSentences || recordingSentences.length === 0) {
+                alert('⚠️ No sentences found. Please go back and enter text first.');
+                return;
+            }
+            
+            if (currentRecordingSentenceIndex >= recordingSentences.length) {
+                alert('⚠️ All sentences already recorded. Click "Get Accurate Score".');
+                return;
+            }
+            
+            if (!microphoneStream) {
+                alert('⚠️ Microphone not available. Please go back and try again.');
+                return;
+            }
+            
+            // 🔧 이전 mediaRecorder가 아직 정리되지 않았다면 정리
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                console.log('⚠️ Previous mediaRecorder still active, stopping...');
+                mediaRecorder.stop();
+                await new Promise(resolve => setTimeout(resolve, 100)); // 100ms 대기
+            }
+            mediaRecorder = null; // 확실히 초기화
+            
+            try {
+                // Check browser support
+                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                    alert('Real-time speech recognition is not supported in this browser. Please use Chrome or Edge.');
+                    return;
+                }
+                
+                console.log('Using existing microphone stream (no permission prompt)');
+                console.log('Creating new MediaRecorder...');
+                
+                // Start MediaRecorder with existing stream
+                mediaRecorder = new MediaRecorder(microphoneStream, {
+                    mimeType: 'audio/webm;codecs=opus'
+                });
+                
+                console.log('✅ MediaRecorder created successfully');
+                
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                        console.log('Audio chunk received, size:', event.data.size);
+                    }
+                };
+                
+                // Create a promise that resolves when recording is saved
+                window.currentRecordingPromise = new Promise((resolve) => {
+                    mediaRecorder.onstop = () => {
+                        console.log('MediaRecorder onstop fired');
+                        console.log('Audio chunks collected:', audioChunks.length);
+                        
+                        // Save this sentence's recording
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        console.log('Created blob, size:', audioBlob.size);
+                        
+                        sentenceRecordings[currentRecordingSentenceIndex] = audioBlob;
+                        console.log('Saved to sentenceRecordings[' + currentRecordingSentenceIndex + ']');
+                        
+                        // Don't stop tracks - we'll reuse the stream
+                        
+                        // Resolve the promise
+                        resolve(audioBlob);
+                    };
+                });
+                
+                mediaRecorder.start();
+                console.log('MediaRecorder started');
+                
+                // Start Real-time Speech Recognition
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+                
+                let finalTranscript = '';
+                
+                recognition.onstart = function() {
+                    console.log('Speech recognition started');
+                    document.getElementById('start-mic-btn').classList.add('hidden');
+                    document.getElementById('stop-mic-btn').classList.remove('hidden');
+                    document.getElementById('recording-status').classList.remove('hidden');
+                };
+                
+                recognition.onresult = function(event) {
+                    let interimTranscript = '';
+                    
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript + ' ';
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    const currentTranscript = finalTranscript + interimTranscript;
+                    
+                    // No highlighting - just save transcription
+                    // (STT is only for saving, not for display)
+                };
+                
+                recognition.onerror = function(event) {
+                    console.error('Speech recognition error:', event.error);
+                    let errorMsg = 'Speech recognition error: ';
+                    if (event.error === 'no-speech') {
+                        errorMsg += 'No speech detected. Please speak clearly.';
+                    } else if (event.error === 'network') {
+                        errorMsg += 'Network error. Please check your connection.';
+                    } else {
+                        errorMsg += event.error;
+                    }
+                    // Show error as alert instead of in transcription div
+                    console.error(errorMsg);
+                };
+                
+                recognition.onend = function() {
+                    console.log('Speech recognition ended');
+                    // Save transcription for this sentence
+                    sentenceTranscriptions[currentRecordingSentenceIndex] = finalTranscript.trim();
+                    console.log('Transcription saved:', finalTranscript.trim());
+                };
+                
+                recognition.start();
+                console.log('Speech recognition started');
+                
+            } catch (error) {
+                console.error('Error starting recording:', error);
+                alert('Error accessing microphone: ' + error.message + '\n\nPlease make sure you granted microphone permission.');
+            }
+        }
+        
+        // Highlight words in current sentence as user speaks
+        function highlightSentenceWords(spokenText) {
+            const spokenWords = spokenText.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+            const wordSpans = document.querySelectorAll('.sentence-word');
+            
+            // 각 원문 단어에 대해 말한 단어 중에서 매칭 찾기
+            const matched = new Set(); // 이미 매칭된 spoken word 인덱스
+            
+            wordSpans.forEach((span, spanIndex) => {
+                const originalWord = span.textContent.toLowerCase().replace(/[.,!?;:]/g, '');
+                let foundMatch = false;
+                
+                // 말한 단어들 중에서 매칭되는 것 찾기
+                for (let i = 0; i < spokenWords.length; i++) {
+                    if (matched.has(i)) continue; // 이미 매칭된 단어는 스킵
+                    
+                    const spokenWord = spokenWords[i].replace(/[.,!?;:]/g, '');
+                    
+                    // 정확한 매칭 또는 유사 매칭
+                    if (originalWord === spokenWord || 
+                        originalWord.includes(spokenWord) || 
+                        spokenWord.includes(originalWord) ||
+                        isSimilar(originalWord, spokenWord)) {
+                        
+                        // 매칭 발견!
+                        span.style.backgroundColor = '#D1FAE5';
+                        span.style.color = '#065F46';
+                        span.style.fontWeight = 'bold';
+                        matched.add(i);
+                        foundMatch = true;
+                        break;
+                    }
+                }
+                
+                if (!foundMatch) {
+                    // 매칭 안됨 - 기본 스타일
+                    span.style.backgroundColor = '';
+                    span.style.color = '';
+                    span.style.fontWeight = '';
+                }
+            });
+        }
+        
+        // 단어 유사도 체크 (간단한 버전)
+        function isSimilar(word1, word2) {
+            if (word1.length < 3 || word2.length < 3) return false;
+            
+            // 첫 2글자가 같고 길이가 비슷하면 유사하다고 판단
+            if (word1.substring(0, 2) === word2.substring(0, 2)) {
+                const lengthDiff = Math.abs(word1.length - word2.length);
+                return lengthDiff <= 2;
+            }
+            
+            return false;
+        }
+        
+        // Stop recording and move to next sentence
+        async function stopSentenceRecording() {
+            console.log('Stop sentence recording called');
+            console.log('Current sentence index:', currentRecordingSentenceIndex);
+            
+            if (recognition) {
+                recognition.stop();
+                recognition = null;
+                console.log('Speech recognition stopped');
+            }
+            
+            // Stop mediaRecorder and wait for blob to be saved
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                console.log('Stopping media recorder...');
+                mediaRecorder.stop();
+                
+                // Wait for the recording to be saved
+                try {
+                    const savedBlob = await window.currentRecordingPromise;
+                    console.log('Recording saved successfully, size:', savedBlob.size, 'bytes');
+                } catch (error) {
+                    console.error('Error saving recording:', error);
+                    alert('⚠️ Recording failed to save. Please try recording this sentence again.');
+                    return;
+                }
+            } else {
+                console.error('MediaRecorder not active or not found');
+                alert('⚠️ No recording found. Please record again.');
+                return;
+            }
+            
+            // 🔧 mediaRecorder 정리
+            mediaRecorder = null;
+            console.log('MediaRecorder cleaned up');
+            
+            // Verify recording was saved
+            const savedBlob = sentenceRecordings[currentRecordingSentenceIndex];
+            if (savedBlob && savedBlob instanceof Blob && savedBlob.size > 0) {
+                console.log(`✅ Recording ${currentRecordingSentenceIndex + 1} verified: ${savedBlob.size} bytes`);
+            } else {
+                console.error(`❌ Recording ${currentRecordingSentenceIndex + 1} NOT saved properly!`, savedBlob);
+                alert('⚠️ Recording was not saved properly. Please try recording this sentence again.');
+                return;
+            }
+            
+            // Add to completed list
+            addCompletedSentence(currentRecordingSentenceIndex);
+            
+            // Move to next sentence
+            currentRecordingSentenceIndex++;
+            console.log('Moving to sentence index:', currentRecordingSentenceIndex);
+            
+            if (currentRecordingSentenceIndex < recordingSentences.length) {
+                // More sentences to record - AUTO START NEXT RECORDING
+                updateSentenceDisplay();
+                
+                // 자동으로 다음 문장 녹음 시작 (약간의 딜레이로 안정화)
+                console.log('🎤 Auto-starting next sentence recording in 300ms...');
+                
+                await new Promise(resolve => setTimeout(resolve, 300)); // 300ms 대기
+                
+                startSentenceRecording().catch(err => {
+                    console.error('Error auto-starting recording:', err);
+                    // 자동 시작 실패 시 버튼 표시
+                    document.getElementById('start-mic-btn').classList.remove('hidden');
+                    document.getElementById('stop-mic-btn').classList.add('hidden');
+                    document.getElementById('recording-status').classList.add('hidden');
+                });
+                
+            } else {
+                // All sentences complete
+                console.log('✅ All sentences recorded!');
+                console.log('Total recordings:', sentenceRecordings.length);
+                console.log('Recordings:', sentenceRecordings.map((b, i) => `[${i}]: ${b ? b.size + ' bytes' : 'undefined'}`));
+                
+                // Stop microphone stream - no longer needed
+                if (microphoneStream) {
+                    microphoneStream.getTracks().forEach(track => track.stop());
+                    microphoneStream = null;
+                    console.log('🎤 Microphone released after all recordings complete');
+                }
+                
+                document.getElementById('current-recording-sentence').innerHTML = '<span style="color: #10B981; font-weight: 600;">✅ All sentences recorded!</span>';
+                document.getElementById('start-mic-btn').classList.add('hidden');
+                document.getElementById('evaluate-btn').classList.remove('hidden');
+                document.getElementById('transcription').style.display = 'block';
+                document.getElementById('transcription').innerHTML = '<span style="color: #10B981;">Click "Get Accurate Score" for detailed evaluation</span>';
+            }
+        }
+        
+        // Add completed sentence to the list
+        function addCompletedSentence(index) {
+            const container = document.getElementById('completed-sentences-container');
+            const list = document.getElementById('completed-sentences-list');
+            
+            container.style.display = 'block';
+            
+            const sentenceDiv = document.createElement('div');
+            sentenceDiv.style.cssText = 'padding: 12px; background: #F0FDF4; border: 1px solid #86EFAC; border-radius: 8px;';
+            
+            const sentenceText = recordingSentences[index];
+            const transcription = sentenceTranscriptions[index] || '(no speech detected)';
+            
+            sentenceDiv.innerHTML = `
+                <div style="display: flex; align-items: start; gap: 8px;">
+                    <span style="color: #10B981; font-size: 18px;">✓</span>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px; color: #374151; margin-bottom: 4px;"><strong>Sentence ${index + 1}:</strong> ${sentenceText}</div>
+                        <div style="font-size: 13px; color: #6B7280;"><em>You said:</em> "${transcription}"</div>
+                    </div>
+                </div>
+            `;
+            
+            list.appendChild(sentenceDiv);
+        }
+        
+        // Evaluate with Google Cloud STT for accurate scoring
+        document.getElementById('evaluate-btn').addEventListener('click', async function() {
+            console.log('Evaluate button clicked');
+            console.log('Sentence recordings array:', sentenceRecordings);
+            console.log('Number of recordings:', sentenceRecordings.length);
+            console.log('Current sentence index:', currentRecordingSentenceIndex);
+            console.log('Total sentences:', recordingSentences.length);
+            
+            const apiKey = document.getElementById('google-api-key').value.trim();
+            
+            if (!apiKey) {
+                alert('⚠️ Google Cloud API key is required for accurate evaluation.\n\nPlease enter your API key in Step 1.');
+                return;
+            }
+            
+            // Check if we have any valid recordings
+            const validRecordings = sentenceRecordings.filter(blob => blob && blob instanceof Blob);
+            console.log('Valid recordings:', validRecordings.length);
+            
+            if (validRecordings.length === 0) {
+                alert('⚠️ No valid recordings found. Please record at least one sentence.');
+                return;
+            }
+            
+            // Show processing status
+            const transcriptionEl = document.getElementById('transcription');
+            transcriptionEl.style.display = 'block';
+            transcriptionEl.innerHTML = '<span style="color: #3B82F6;">⏳ Processing sentences individually with Google Cloud...</span>';
+            
+            try {
+                let fullTranscription = '';
+                
+                // 🎯 각 문장을 개별로 처리 (60초 제한 우회!)
+                for (let i = 0; i < sentenceRecordings.length; i++) {
+                    const blob = sentenceRecordings[i];
+                    if (!blob || !(blob instanceof Blob) || blob.size === 0) {
+                        console.log(`Skipping sentence ${i + 1} - no recording`);
+                        continue;
+                    }
+                    
+                    console.log(`Processing sentence ${i + 1}/${sentenceRecordings.length}, size: ${blob.size} bytes`);
+                    transcriptionEl.innerHTML = `<span style="color: #3B82F6;">⏳ Processing sentence ${i + 1} of ${sentenceRecordings.length}...</span>`;
+                    
+                    try {
+                        // Convert to base64
+                        const base64Audio = await new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(blob);
+                        });
+                        
+                        // Call Google Cloud Speech-to-Text API for this sentence
+                        const response = await fetch(
+                            `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`,
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    config: {
+                                        encoding: 'WEBM_OPUS',
+                                        sampleRateHertz: 48000,
+                                        languageCode: 'en-US',
+                                        enableAutomaticPunctuation: true,
+                                        model: 'default',
+                                        useEnhanced: true
+                                    },
+                                    audio: {
+                                        content: base64Audio
+                                    }
+                                })
+                            }
+                        );
+                        
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}));
+                            console.error(`Error processing sentence ${i + 1}:`, errorData);
+                            // 이 문장은 스킵하고 계속
+                            continue;
+                        }
+                        
+                        const data = await response.json();
+                        
+                        if (data.results && data.results.length > 0) {
+                            const sentenceTranscription = data.results
+                                .map(result => result.alternatives[0].transcript)
+                                .join(' ');
+                            
+                            fullTranscription += sentenceTranscription + ' ';
+                            console.log(`Sentence ${i + 1} transcription:`, sentenceTranscription);
+                        } else {
+                            console.log(`No speech detected in sentence ${i + 1}`);
+                        }
+                        
+                    } catch (sentenceError) {
+                        console.error(`Error processing sentence ${i + 1}:`, sentenceError);
+                        // 이 문장은 스킵하고 계속
+                        continue;
+                    }
+                }
+                
+                // 모든 문장 처리 완료
+                transcription = fullTranscription.trim();
+                console.log('Full transcription:', transcription);
+                
+                if (transcription) {
+                    transcriptionEl.innerHTML = `<span style="color: #10B981; font-weight: 600;">✅ Google Cloud Result:</span><br><br>${transcription}`;
+                    
+                    // Now evaluate with accurate transcription
+                    evaluateBasic();
+                } else {
+                    transcriptionEl.innerHTML = '<span style="color: #EF4444;">⚠️ No speech detected in any sentence.</span>';
+                }
+                
+            } catch (error) {
+                console.error('Google Cloud STT error:', error);
+                
+                let errorMsg = '❌ Error: ';
+                if (error.message.includes('quota')) {
+                    errorMsg += 'API quota exceeded. Check your Google Cloud console.';
+                } else if (error.message.includes('API key')) {
+                    errorMsg += 'Invalid API key. Please check your key in Step 1.';
+                } else if (error.message.includes('403')) {
+                    errorMsg += 'Speech-to-Text API not enabled. Enable it at: https://console.cloud.google.com/apis/library/speech.googleapis.com';
+                } else {
+                    errorMsg += error.message;
+                }
+                
+                transcriptionEl.innerHTML = `<span style="color: #EF4444;">${errorMsg}</span>`;
+            }
+        });
+        
+        // Combine multiple audio blobs into one
+        async function combineAudioBlobs(blobs) {
+            console.log('Combining audio blobs...');
+            console.log('Total blobs:', blobs.length);
+            console.log('Blobs array:', blobs);
+            
+            // Filter out undefined or null blobs
+            const validBlobs = blobs.filter(blob => blob && blob instanceof Blob);
+            console.log('Valid blobs:', validBlobs.length);
+            
+            if (validBlobs.length === 0) {
+                throw new Error('No valid audio recordings found. Please record at least one sentence.');
+            }
+            
+            // For WebM audio, we can simply concatenate the blobs
+            const audioChunks = [];
+            
+            for (let i = 0; i < validBlobs.length; i++) {
+                const blob = validBlobs[i];
+                console.log(`Processing blob ${i + 1}/${validBlobs.length}, size: ${blob.size} bytes`);
+                
+                try {
+                    const arrayBuffer = await blob.arrayBuffer();
+                    audioChunks.push(new Uint8Array(arrayBuffer));
+                } catch (error) {
+                    console.error(`Error processing blob ${i + 1}:`, error);
+                    throw new Error(`Failed to process recording ${i + 1}`);
+                }
+            }
+            
+            console.log('All blobs processed, combining...');
+            
+            // Calculate total size
+            const totalSize = audioChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+            console.log('Total combined size:', totalSize, 'bytes');
+            
+            // Combine into single array
+            const combined = new Uint8Array(totalSize);
+            let offset = 0;
+            for (const chunk of audioChunks) {
+                combined.set(chunk, offset);
+                offset += chunk.length;
+            }
+            
+            console.log('Audio combination complete');
+            return new Blob([combined], { type: 'audio/webm' });
+        }
+        
+        // Real-time highlight function
+        function highlightSpokenWordsRealtime(spokenText) {
+            const spokenWords = spokenText.toLowerCase().match(/\b\w+\b/g) || [];
+            const wordSpans = document.querySelectorAll('#record-text-highlighted .word');
+            
+            let spokenIndex = 0;
+            wordSpans.forEach((span) => {
+                const word = span.textContent.toLowerCase().replace(/[^\w]/g, '');
+                
+                if (!word) return;
+                
+                if (spokenIndex < spokenWords.length) {
+                    const currentSpokenWord = spokenWords[spokenIndex];
+                    
+                    // If words match, highlight in green
+                    if (word === currentSpokenWord || word.includes(currentSpokenWord) || currentSpokenWord.includes(word)) {
+                        span.style.backgroundColor = '#D1FAE5';
+                        span.style.color = '#065F46';
+                        span.style.fontWeight = 'bold';
+                        spokenIndex++;
+                    } else {
+                        // Not yet spoken - keep default
+                        span.style.backgroundColor = '';
+                        span.style.color = '';
+                        span.style.fontWeight = '';
+                    }
+                } else {
+                    // No more spoken words yet
+                    span.style.backgroundColor = '';
+                    span.style.color = '';
+                    span.style.fontWeight = '';
+                }
+            });
+        }
+        
+        // Save Google settings when changed
+        document.getElementById('google-api-key').addEventListener('change', saveGoogleSettings);
+        document.getElementById('google-api-key').addEventListener('blur', saveGoogleSettings);
+        
+        // Highlight spoken words in the original text
+        function highlightSpokenWords(spokenText) {
+            const originalWords = readingText.toLowerCase().match(/\b\w+\b/g) || [];
+            const spokenWords = spokenText.toLowerCase().match(/\b\w+\b/g) || [];
+            
+            // Create a set of spoken words for quick lookup
+            const spokenWordSet = new Set(spokenWords);
+            
+            // Get all word spans
+            const wordSpans = document.querySelectorAll('#record-text-highlighted .word');
+            
+            // Simple word matching approach
+            let spokenIndex = 0;
+            wordSpans.forEach((span, index) => {
+                const word = span.textContent.toLowerCase().replace(/[^\w]/g, '');
+                
+                if (!word) return;
+                
+                // Check if this word was spoken
+                if (spokenIndex < spokenWords.length) {
+                    const currentSpokenWord = spokenWords[spokenIndex];
+                    
+                    // If words match, highlight in green
+                    if (word === currentSpokenWord || word.includes(currentSpokenWord) || currentSpokenWord.includes(word)) {
+                        span.style.backgroundColor = '#D1FAE5';
+                        span.style.color = '#065F46';
+                        span.style.fontWeight = 'bold';
+                        spokenIndex++;
+                    } else {
+                        // Check if the word appears anywhere in spoken text
+                        if (spokenWordSet.has(word)) {
+                            span.style.backgroundColor = '#FEF08A';
+                            span.style.color = '#854D0E';
+                        } else {
+                            // Not spoken - gray it out
+                            span.style.color = '#D1D5DB';
+                            span.style.fontWeight = 'normal';
+                        }
+                    }
+                } else {
+                    // No more spoken words - gray out remaining
+                    span.style.color = '#D1D5DB';
+                    span.style.fontWeight = 'normal';
+                }
+            });
+            
+            // Show the legend
+        }
+
+        // Evaluation with word matching
+        
+        function evaluateBasic() {
+            const sentences = readingText.match(/[^.!?]+[.!?]+/g) || [readingText];
+            const spokenText = transcription.toLowerCase();
+            const spokenWords = spokenText.replace(/[^\w\s]/g, '').split(/\s+/).filter(w => w.length > 0);
+            
+            let totalWords = 0;
+            let totalMatched = 0;
+            const sentenceResults = [];
+            
+            sentences.forEach((sentence, index) => {
+                const sentenceWords = sentence.trim().split(/\s+/);
+                const cleanWords = sentenceWords.map(w => w.toLowerCase().replace(/[^\w]/g, ''));
+                
+                // 각 단어의 상태를 추적
+                const wordStates = [];
+                const usedSpokenIndices = new Set();
+                
+                cleanWords.forEach((cleanWord, wordIndex) => {
+                    let matched = false;
+                    
+                    // 말한 단어 중에서 매칭 찾기
+                    for (let i = 0; i < spokenWords.length; i++) {
+                        if (usedSpokenIndices.has(i)) continue;
+                        
+                        if (cleanWord === spokenWords[i] || 
+                            cleanWord.includes(spokenWords[i]) || 
+                            spokenWords[i].includes(cleanWord)) {
+                            matched = true;
+                            usedSpokenIndices.add(i);
+                            totalMatched++;
+                            break;
+                        }
+                    }
+                    
+                    wordStates.push({
+                        original: sentenceWords[wordIndex],
+                        matched: matched
+                    });
+                });
+                
+                const matchedInSentence = wordStates.filter(w => w.matched).length;
+                totalWords += cleanWords.length;
+                const sentenceAccuracy = cleanWords.length > 0 ? Math.round((matchedInSentence / cleanWords.length) * 100) : 0;
+                
+                sentenceResults.push({
+                    text: sentence.trim(),
+                    accuracy: sentenceAccuracy,
+                    matched: matchedInSentence,
+                    total: cleanWords.length,
+                    wordStates: wordStates // 각 단어 상태 추가
+                });
+            });
+            
+            const overallAccuracy = totalWords > 0 ? Math.round((totalMatched / totalWords) * 100) : 0;
+            
+            let feedback = '';
+            let color = '';
+            if (overallAccuracy >= 90) {
+                feedback = "Excellent! Your pronunciation is very clear and accurate.";
+                color = 'green';
+            } else if (overallAccuracy >= 75) {
+                feedback = "Great job! Your pronunciation is good with minor improvements needed.";
+                color = 'green';
+            } else if (overallAccuracy >= 60) {
+                feedback = "Good effort! Keep practicing to improve clarity on some sentences.";
+                color = 'yellow';
+            } else {
+                feedback = "Keep practicing! Focus on speaking clearly and at a steady pace.";
+                color = 'red';
+            }
+            
+            displayResults(overallAccuracy, totalWords, totalMatched, sentenceResults, feedback, color);
+        }
+        
+        function displayResults(accuracy, totalWords, matchedWords, sentenceResults, feedback, color) {
+            document.getElementById('accuracy-score').textContent = accuracy + '%';
+            document.getElementById('total-words').textContent = totalWords;
+            document.getElementById('matched-words').textContent = matchedWords;
+            document.getElementById('feedback-text').textContent = feedback;
+            
+            const feedbackBox = document.getElementById('feedback-box');
+            feedbackBox.className = 'feedback-box ' + color;
+            
+            const progressCircle = document.getElementById('progress-circle');
+            if (color === 'green') {
+                progressCircle.setAttribute('stroke', '#10B981');
+            } else if (color === 'yellow') {
+                progressCircle.setAttribute('stroke', '#F59E0B');
+            } else {
+                progressCircle.setAttribute('stroke', '#EF4444');
+            }
+            
+            const circumference = 2 * Math.PI * 70;
+            const offset = circumference * (1 - accuracy / 100);
+            progressCircle.setAttribute('stroke-dashoffset', offset);
+            
+            const wordAnalysis = document.getElementById('word-analysis');
+            wordAnalysis.innerHTML = '';
+            
+            sentenceResults.forEach((result, index) => {
+                const sentenceDiv = document.createElement('div');
+                sentenceDiv.className = 'sentence-card';
+                
+                if (result.accuracy >= 80) {
+                    sentenceDiv.classList.add('green');
+                } else if (result.accuracy >= 60) {
+                    sentenceDiv.classList.add('yellow');
+                } else {
+                    sentenceDiv.classList.add('red');
+                }
+                
+                const header = document.createElement('div');
+                header.className = 'sentence-header';
+                
+                const sentenceLabel = document.createElement('span');
+                sentenceLabel.className = 'sentence-label';
+                sentenceLabel.textContent = `Sentence ${index + 1}`;
+                
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'sentence-score';
+                if (result.accuracy >= 80) {
+                    scoreSpan.classList.add('green');
+                } else if (result.accuracy >= 60) {
+                    scoreSpan.classList.add('yellow');
+                } else {
+                    scoreSpan.classList.add('red');
+                }
+                scoreSpan.textContent = `${result.accuracy}%`;
+                
+                header.appendChild(sentenceLabel);
+                header.appendChild(scoreSpan);
+                
+                // 단어별 색상 표시
+                const sentenceText = document.createElement('div');
+                sentenceText.className = 'sentence-text';
+                sentenceText.style.lineHeight = '1.8';
+                sentenceText.style.fontSize = '15px';
+                
+                if (result.wordStates && result.wordStates.length > 0) {
+                    // 각 단어를 span으로 감싸서 색상 적용
+                    result.wordStates.forEach((wordState, wordIndex) => {
+                        const wordSpan = document.createElement('span');
+                        wordSpan.textContent = wordState.original;
+                        wordSpan.style.transition = 'all 0.3s';
+                        wordSpan.style.padding = '2px 4px';
+                        wordSpan.style.borderRadius = '3px';
+                        wordSpan.style.marginRight = '4px';
+                        
+                        if (wordState.matched) {
+                            // 올바르게 발음한 단어 - 초록색
+                            wordSpan.style.backgroundColor = '#D1FAE5';
+                            wordSpan.style.color = '#065F46';
+                            wordSpan.style.fontWeight = '600';
+                        } else {
+                            // 잘못 발음했거나 놓친 단어 - 빨간색
+                            wordSpan.style.backgroundColor = '#FEE2E2';
+                            wordSpan.style.color = '#991B1B';
+                            wordSpan.style.fontWeight = '600';
+                            wordSpan.style.textDecoration = 'underline';
+                        }
+                        
+                        sentenceText.appendChild(wordSpan);
+                        
+                        // 단어 사이에 공백 추가
+                        if (wordIndex < result.wordStates.length - 1) {
+                            sentenceText.appendChild(document.createTextNode(' '));
+                        }
+                    });
+                } else {
+                    // wordStates가 없으면 원본 텍스트 표시
+                    sentenceText.textContent = result.text;
+                }
+                
+                const stats = document.createElement('div');
+                stats.className = 'sentence-stats';
+                stats.innerHTML = `
+                    <span style="color: #059669; font-weight: 600;">✓ ${result.matched}</span> / 
+                    <span style="color: #DC2626; font-weight: 600;">✗ ${result.total - result.matched}</span> / 
+                    <span style="font-weight: 600;">Total ${result.total} words</span>
+                `;
+                
+                // 🔊 녹음 재생 기능 추가
+                const audioContainer = document.createElement('div');
+                audioContainer.style.cssText = 'margin-top: 12px; padding-top: 12px; border-top: 1px solid #E5E7EB;';
+                
+                // 녹음된 오디오가 있는지 확인
+                if (sentenceRecordings[index] && sentenceRecordings[index] instanceof Blob) {
+                    const audioBlob = sentenceRecordings[index];
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    const audioPlayer = document.createElement('audio');
+                    audioPlayer.controls = true;
+                    audioPlayer.style.cssText = 'width: 100%; height: 32px; margin-top: 4px;';
+                    audioPlayer.src = audioUrl;
+                    
+                    const audioLabel = document.createElement('div');
+                    audioLabel.style.cssText = 'font-size: 13px; color: #6B7280; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;';
+                    audioLabel.innerHTML = '🔊 Your Recording:';
+                    
+                    audioContainer.appendChild(audioLabel);
+                    audioContainer.appendChild(audioPlayer);
+                } else {
+                    // 녹음이 없는 경우
+                    const noAudio = document.createElement('div');
+                    noAudio.style.cssText = 'font-size: 13px; color: #9CA3AF; font-style: italic;';
+                    noAudio.textContent = '🔇 No recording available';
+                    audioContainer.appendChild(noAudio);
+                }
+                
+                sentenceDiv.appendChild(header);
+                sentenceDiv.appendChild(sentenceText);
+                sentenceDiv.appendChild(stats);
+                sentenceDiv.appendChild(audioContainer);
+                
+                wordAnalysis.appendChild(sentenceDiv);
+            });
+            
+            updateProgress(4);
+        }
+
+        // Try again and reset
+        document.getElementById('try-again-btn').addEventListener('click', async function() {
+            transcription = '';
+            realtimeTranscription = '';
+            audioChunks = [];
+            recordedAudioBlob = null;
+            
+            // Reset sentence recording
+            currentRecordingSentenceIndex = 0;
+            sentenceRecordings = [];
+            sentenceTranscriptions = [];
+            
+            // Keep microphone stream for reuse (don't stop it)
+            console.log('Keeping microphone stream for reuse');
+            
+            // Clear timer
+            if (recordingTimer) {
+                clearInterval(recordingTimer);
+                recordingTimer = null;
+            }
+            
+            document.getElementById('transcription').style.display = 'none';
+            document.getElementById('evaluate-btn').classList.add('hidden');
+            document.getElementById('completed-sentences-container').style.display = 'none';
+            document.getElementById('completed-sentences-list').innerHTML = '';
+            
+            if (recognition) {
+                recognition.stop();
+                recognition = null;
+            }
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            
+            // Reset highlights
+            document.querySelectorAll('.sentence-word').forEach(span => {
+                span.style.backgroundColor = '';
+                span.style.color = '';
+                span.style.fontWeight = '';
+            });
+            
+            // Re-prepare (will reuse existing microphone stream)
+            await prepareSentenceRecording();
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', function() {
+            readingText = '';
+            transcription = '';
+            realtimeTranscription = '';
+            audioChunks = [];
+            recordedAudioBlob = null;
+            uploadedImages = []; // Clear uploaded images
+            
+            // Reset sentence recording
+            recordingSentences = [];
+            currentRecordingSentenceIndex = 0;
+            sentenceRecordings = [];
+            sentenceTranscriptions = [];
+            
+            // Stop and cleanup microphone stream
+            if (microphoneStream) {
+                microphoneStream.getTracks().forEach(track => track.stop());
+                microphoneStream = null;
+                console.log('Microphone stream stopped and cleaned up');
+            }
+            
+            // Clear timer
+            if (recordingTimer) {
+                clearInterval(recordingTimer);
+                recordingTimer = null;
+            }
+            
+            document.getElementById('reading-text').value = '';
+            document.getElementById('transcription').innerHTML = 'Click "Start Recording" to begin...';
+            document.getElementById('evaluate-btn').classList.add('hidden');
+            document.getElementById('images-container').style.display = 'none';
+            document.getElementById('image-previews').innerHTML = '';
+            document.getElementById('image-name').textContent = '';
+            document.getElementById('image-upload').value = '';
+            document.getElementById('completed-sentences-container').style.display = 'none';
+            document.getElementById('completed-sentences-list').innerHTML = '';
+            
+            stopAudio();
+            if (recognition) {
+                recognition.stop();
+                recognition = null;
+            }
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            
+            // Reset all highlights and hide legend
+            document.querySelectorAll('.sentence').forEach(span => {
+                span.style.backgroundColor = '';
+                span.style.color = '';
+                span.style.fontWeight = '';
+            });
+            document.querySelectorAll('.sentence-word').forEach(span => {
+                span.style.backgroundColor = '';
+                span.style.color = '';
+                span.style.fontWeight = '';
+            });
+            
+            updateProgress(1);
+        });
+    </script>
+</body>
+</html>
