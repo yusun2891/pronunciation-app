@@ -645,6 +645,84 @@
                 padding: 32px 24px;
             }
         }
+        
+        /* 🎤 Re-record 모달 */
+        .rerecord-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .rerecord-modal.active {
+            display: flex;
+        }
+        
+        .rerecord-content {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .rerecord-header {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .rerecord-sentence {
+            background: #F3F4F6;
+            border-left: 4px solid var(--duo-blue);
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 18px;
+            line-height: 1.8;
+            color: var(--text-dark);
+            margin-bottom: 24px;
+        }
+        
+        .rerecord-status {
+            text-align: center;
+            padding: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-gray);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .rerecord-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -969,6 +1047,36 @@
 
         <!-- Tips -->
         <div class="tips-card">
+        </div>
+    </div>
+
+    <!-- 🎤 Re-record Modal -->
+    <div id="rerecord-modal" class="rerecord-modal">
+        <div class="rerecord-content">
+            <div class="rerecord-header">
+                <span>🎤</span>
+                <span id="rerecord-title">Re-record Sentence</span>
+            </div>
+            
+            <div class="rerecord-sentence" id="rerecord-sentence-text">
+                <!-- Sentence will be displayed here -->
+            </div>
+            
+            <div class="rerecord-status" id="rerecord-status">
+                Ready to record
+            </div>
+            
+            <div class="rerecord-buttons">
+                <button id="rerecord-start-btn" class="btn-success" style="flex: 1;">
+                    🎤 Start Recording
+                </button>
+                <button id="rerecord-stop-btn" class="btn-danger" style="flex: 1; display: none;">
+                    ⏹ Stop & Evaluate
+                </button>
+                <button id="rerecord-cancel-btn" class="btn-gray" style="padding: 14px 24px;">
+                    ✕ Cancel
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1486,17 +1594,12 @@
             const protectedItems = [];
             let markerIndex = 0;
             
-            // 1-1. 약어 보호 (Mr., Dr., U.S. 등)
+            // 1-1. 약어 보호
             const abbreviations = [
-                // 인칭
                 'Mr.', 'Mrs.', 'Ms.', 'Miss.', 'Dr.', 'Prof.', 'Sr.', 'Jr.',
-                // 장소
                 'St.', 'Ave.', 'Rd.', 'Blvd.', 'Apt.', 'Dept.', 'Bldg.',
-                // 국가/조직
                 'U.S.', 'U.K.', 'U.N.', 'E.U.', 'U.S.A.',
-                // 시간
                 'a.m.', 'p.m.', 'A.M.', 'P.M.',
-                // 기타
                 'etc.', 'vs.', 'Inc.', 'Ltd.', 'Co.', 'Corp.',
                 'vol.', 'ch.', 'no.', 'No.', 'pp.', 'ed.', 'et al.'
             ];
@@ -1511,11 +1614,11 @@
                 });
             });
             
-            // 1-2. 숫자 패턴 보호 (3.14, $5.99, 1,000.50 등)
+            // 1-2. 숫자 패턴 보호
             const numberPatterns = [
-                /\$\d+(?:,\d{3})*(?:\.\d+)?/g,           // $5.99, $1,000.50
-                /\d+(?:,\d{3})*(?:\.\d+)?%?/g,           // 3.14, 1,000, 95%
-                /\d+:\d+(?::\d+)?(?:\s*[ap]\.?m\.?)?/gi  // 3:30, 3:30 p.m.
+                /\$\d+(?:,\d{3})*(?:\.\d+)?/g,
+                /\d+(?:,\d{3})*(?:\.\d+)?%?/g,
+                /\d+:\d+(?::\d+)?(?:\s*[ap]\.?m\.?)?/gi
             ];
             
             numberPatterns.forEach(pattern => {
@@ -1537,9 +1640,9 @@
             
             // 1-4. URL 보호
             const urlPatterns = [
-                /https?:\/\/[^\s]+/g,                    // http://..., https://...
-                /www\.[^\s]+/g,                          // www.google.com
-                /[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?/g  // example.com, google.com/search
+                /https?:\/\/[^\s]+/g,
+                /www\.[^\s]+/g,
+                /[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?/g
             ];
             
             urlPatterns.forEach(pattern => {
@@ -1551,7 +1654,7 @@
                 });
             });
             
-            // 1-5. 생략 부호 보호 (...)
+            // 1-5. 생략 부호 보호
             protected = protected.replace(/\.{3,}/g, (match) => {
                 const marker = `__MARKER${markerIndex}__`;
                 protectedItems[markerIndex] = match;
@@ -1559,87 +1662,55 @@
                 return marker;
             });
             
-            // 1-6. 날짜 보호 (12.25, 2024.01.01, Jan. 1)
-            protected = protected.replace(/\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.?\s+\d+/gi, (match) => {
-                const marker = `__MARKER${markerIndex}__`;
-                protectedItems[markerIndex] = match;
-                markerIndex++;
-                return marker;
-            });
-            
-            // 1-7. 소수점으로 끝나는 숫자 (버전 번호 등: v2.0, iOS 17.0)
-            protected = protected.replace(/\b[a-zA-Z]*\d+\.\d+/g, (match) => {
-                const marker = `__MARKER${markerIndex}__`;
-                protectedItems[markerIndex] = match;
-                markerIndex++;
-                return marker;
-            });
-            
             console.log('After protection:', protected);
-            console.log('Protected items:', protectedItems);
             
-            // 2단계: 대화문 및 문장 분할
+            // 2단계: 간단하고 정확한 문장 분할
             const sentences = [];
             let current = '';
             let inQuote = false;
-            let quoteChar = '';
+            let quoteDepth = 0;
             
             for (let i = 0; i < protected.length; i++) {
                 const char = protected[i];
-                const prevChar = protected[i - 1] || '';
                 const nextChar = protected[i + 1] || '';
+                const next2Char = protected[i + 2] || '';
                 
-                // 따옴표 감지 (여러 종류 지원) - 유니코드로 안전하게 처리
-                const quoteChars = [
-                    '"',          // 일반 큰따옴표
-                    "'",          // 일반 작은따옴표
-                    '\u201C',     // " (스마트 큰따옴표 시작)
-                    '\u201D',     // " (스마트 큰따옴표 끝)
-                    '\u2018',     // ' (스마트 작은따옴표 시작)
-                    '\u2019'      // ' (스마트 작은따옴표 끝)
-                ];
-                const isQuote = quoteChars.includes(char);
+                current += char;
                 
-                if (isQuote && !inQuote) {
-                    inQuote = true;
-                    quoteChar = char;
-                    current += char;
-                } else if (isQuote && inQuote) {
-                    inQuote = false;
-                    current += char;
-                    
-                    // 따옴표 후 대화 태그 확인 (said, asked 등)
-                    const remaining = protected.slice(i + 1);
-                    const dialogueTag = /^[,.]?\s*(said|asked|replied|shouted|whispered|exclaimed|answered|continued|added|thought|wondered|cried|yelled|muttered|murmured|declared|announced|stated|explained|remarked)\s+[\w\s]+?[.!?]/i;
-                    
-                    const match = remaining.match(dialogueTag);
-                    if (match) {
-                        current += remaining.slice(0, match[0].length);
-                        i += match[0].length;
+                // 따옴표 추적 (열기/닫기)
+                if (char === '"' || char === '\u201C' || char === '\u201D') {
+                    if (!inQuote) {
+                        inQuote = true;
+                        quoteDepth++;
+                    } else {
+                        quoteDepth--;
+                        if (quoteDepth === 0) {
+                            inQuote = false;
+                        }
                     }
-                    
-                } else if (!inQuote && (char === '.' || char === '!' || char === '?')) {
-                    current += char;
-                    
-                    // 문장 종결 조건 확인
-                    const shouldEnd = (
-                        nextChar === '' ||                          // 텍스트 끝
-                        nextChar === ' ' ||                         // 공백
-                        nextChar === '\n' ||                        // 개행
-                        nextChar === '\r' ||                        // 캐리지 리턴
-                        /[A-Z"\u2018\u2019\u201C\u201D']/.test(nextChar)  // 대문자나 따옴표로 시작
+                }
+                
+                // 문장 끝 감지 (따옴표 밖에서만)
+                if (!inQuote && (char === '.' || char === '!' || char === '?')) {
+                    // 다음이 공백, 대문자, 따옴표, 또는 끝이면 문장 완료
+                    const isEnd = (
+                        nextChar === '' ||
+                        nextChar === '\n' ||
+                        nextChar === '\r' ||
+                        (nextChar === ' ' && (next2Char === '' || /[A-Z"\u201C]/.test(next2Char))) ||
+                        /[A-Z"\u201C]/.test(nextChar)
                     );
                     
-                    // 마커가 아닌 실제 마침표인지 확인
-                    const isProtectedMarker = /__MARKER\d+__/.test(current.slice(-20));
+                    // 마커 체크 (약어가 아닌지)
+                    const endsWithMarker = /__MARKER\d+__$/.test(current.trim());
                     
-                    if (shouldEnd && !isProtectedMarker && current.trim().length > 0) {
-                        sentences.push(current.trim());
-                        current = '';
+                    if (isEnd && !endsWithMarker) {
+                        const trimmed = current.trim();
+                        if (trimmed.length > 0) {
+                            sentences.push(trimmed);
+                            current = '';
+                        }
                     }
-                    
-                } else {
-                    current += char;
                 }
             }
             
@@ -1648,8 +1719,26 @@
                 sentences.push(current.trim());
             }
             
-            // 3단계: 보호된 항목 복원
-            const restored = sentences.map(sentence => {
+            // 3단계: 대화 태그 병합 (says X, asked Y 등이 혼자 있는 경우)
+            const merged = [];
+            for (let i = 0; i < sentences.length; i++) {
+                const sentence = sentences[i];
+                const nextSentence = sentences[i + 1] || '';
+                
+                // 다음 문장이 짧고 대화 태그로 시작하면 병합
+                const dialogueTagPattern = /^(said|says|asked|asks|replied|replies|shouted|shouts|whispered|whispers|exclaimed|exclaims|answered|answers|continued|continues|added|adds|thought|thinks|wondered|wonders|cried|cries|yelled|yells|muttered|mutters|murmured|murmurs|declared|declares|announced|announces|stated|states|explained|explains|remarked|remarks)\s+\w+/i;
+                
+                if (nextSentence && nextSentence.length < 50 && dialogueTagPattern.test(nextSentence.trim())) {
+                    // 병합
+                    merged.push(sentence + ' ' + nextSentence);
+                    i++; // 다음 문장 건너뛰기
+                } else {
+                    merged.push(sentence);
+                }
+            }
+            
+            // 4단계: 보호된 항목 복원
+            const restored = merged.map(sentence => {
                 let result = sentence;
                 protectedItems.forEach((item, index) => {
                     if (item !== undefined) {
@@ -1660,7 +1749,7 @@
                 return result;
             });
             
-            // 4단계: 빈 문장 제거 및 정리
+            // 5단계: 정리
             const cleaned = restored
                 .filter(s => s.trim().length > 0)
                 .map(s => s.trim());
@@ -3407,10 +3496,26 @@
                     audioContainer.appendChild(audioPlayer);
                 }
                 
+                // 🎤 Re-record 버튼 추가
+                const rerecordBtn = document.createElement('button');
+                rerecordBtn.className = 'btn-primary';
+                rerecordBtn.style.cssText = `
+                    width: 100%;
+                    margin-top: 12px;
+                    padding: 12px;
+                    font-size: 14px;
+                    font-weight: 700;
+                `;
+                rerecordBtn.innerHTML = '🎤 Re-record This Sentence';
+                rerecordBtn.addEventListener('click', () => {
+                    openRerecordModal(index, result.text);
+                });
+                
                 sentenceCard.appendChild(header);
                 sentenceCard.appendChild(sentenceText);
                 sentenceCard.appendChild(stats);
                 sentenceCard.appendChild(audioContainer);
+                sentenceCard.appendChild(rerecordBtn);
                 
                 wordAnalysis.appendChild(sentenceCard);
             });
@@ -3749,6 +3854,234 @@
         // History filter
         document.getElementById('history-filter')?.addEventListener('change', function() {
             loadHistory(this.value);
+        });
+        
+        // ========================================
+        // 🎤 Re-record Functionality
+        // ========================================
+        
+        let rerecordIndex = -1;
+        let rerecordText = '';
+        let rerecordMediaRecorder = null;
+        let rerecordAudioChunks = [];
+        let rerecordStream = null;
+        
+        // Open re-record modal
+        function openRerecordModal(sentenceIndex, sentenceText) {
+            rerecordIndex = sentenceIndex;
+            rerecordText = sentenceText;
+            
+            document.getElementById('rerecord-title').textContent = `Re-record Sentence ${sentenceIndex + 1}`;
+            document.getElementById('rerecord-sentence-text').textContent = sentenceText;
+            document.getElementById('rerecord-status').textContent = 'Ready to record';
+            document.getElementById('rerecord-start-btn').style.display = 'block';
+            document.getElementById('rerecord-stop-btn').style.display = 'none';
+            
+            document.getElementById('rerecord-modal').classList.add('active');
+        }
+        
+        // Close modal
+        function closeRerecordModal() {
+            document.getElementById('rerecord-modal').classList.remove('active');
+            
+            // Cleanup
+            if (rerecordMediaRecorder && rerecordMediaRecorder.state !== 'inactive') {
+                rerecordMediaRecorder.stop();
+            }
+            if (rerecordStream) {
+                rerecordStream.getTracks().forEach(track => track.stop());
+                rerecordStream = null;
+            }
+            
+            rerecordIndex = -1;
+            rerecordText = '';
+            rerecordAudioChunks = [];
+        }
+        
+        // Start recording
+        document.getElementById('rerecord-start-btn')?.addEventListener('click', async function() {
+            try {
+                // Request microphone
+                rerecordStream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        channelCount: 1,
+                        echoCancellation: true,
+                        noiseSuppression: true
+                    }
+                });
+                
+                rerecordMediaRecorder = new MediaRecorder(rerecordStream, {
+                    mimeType: 'audio/webm;codecs=opus'
+                });
+                
+                rerecordAudioChunks = [];
+                
+                rerecordMediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        rerecordAudioChunks.push(event.data);
+                    }
+                };
+                
+                rerecordMediaRecorder.start();
+                
+                // Update UI
+                document.getElementById('rerecord-status').innerHTML = '<span style="color: #EF4444;">🔴 Recording...</span>';
+                document.getElementById('rerecord-start-btn').style.display = 'none';
+                document.getElementById('rerecord-stop-btn').style.display = 'block';
+                
+                console.log('✅ Re-recording started for sentence:', rerecordIndex);
+                
+            } catch (error) {
+                console.error('❌ Microphone error:', error);
+                alert('⚠️ Microphone access denied. Please allow microphone access.');
+            }
+        });
+        
+        // Stop recording and evaluate
+        document.getElementById('rerecord-stop-btn')?.addEventListener('click', async function() {
+            if (!rerecordMediaRecorder || rerecordMediaRecorder.state === 'inactive') {
+                alert('⚠️ No active recording');
+                return;
+            }
+            
+            // Stop recording
+            rerecordMediaRecorder.stop();
+            
+            // Update UI
+            document.getElementById('rerecord-status').innerHTML = '<span style="color: var(--duo-blue);">⏳ Processing...</span>';
+            document.getElementById('rerecord-stop-btn').disabled = true;
+            
+            // Wait for audio data
+            await new Promise(resolve => {
+                rerecordMediaRecorder.onstop = resolve;
+            });
+            
+            const audioBlob = new Blob(rerecordAudioChunks, { type: 'audio/webm' });
+            console.log('✅ Audio recorded:', audioBlob.size, 'bytes');
+            
+            // Evaluate with Google Cloud STT
+            const apiKey = document.getElementById('google-api-key').value.trim();
+            if (!apiKey) {
+                alert('⚠️ Google Cloud API key is required');
+                closeRerecordModal();
+                return;
+            }
+            
+            try {
+                // Convert to base64
+                const base64Audio = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(audioBlob);
+                });
+                
+                // Call Google Cloud STT
+                const response = await fetch(
+                    `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            config: {
+                                encoding: 'WEBM_OPUS',
+                                sampleRateHertz: 48000,
+                                languageCode: 'en-US',
+                                enableAutomaticPunctuation: true
+                            },
+                            audio: { content: base64Audio }
+                        })
+                    }
+                );
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error?.message || 'STT API error');
+                }
+                
+                const newTranscription = data.results?.[0]?.alternatives?.[0]?.transcript || '';
+                console.log('New transcription:', newTranscription);
+                
+                // Evaluate accuracy
+                const originalWords = rerecordText.toLowerCase().match(/\b\w+\b/g) || [];
+                const spokenWords = newTranscription.toLowerCase().match(/\b\w+\b/g) || [];
+                
+                let matchedCount = 0;
+                const wordStates = [];
+                
+                originalWords.forEach(originalWord => {
+                    const matched = spokenWords.includes(originalWord);
+                    if (matched) matchedCount++;
+                    wordStates.push({
+                        original: originalWord,
+                        matched: matched
+                    });
+                });
+                
+                const newAccuracy = originalWords.length > 0 
+                    ? Math.round((matchedCount / originalWords.length) * 100) 
+                    : 0;
+                
+                console.log('New accuracy:', newAccuracy);
+                
+                // Update global data
+                sentenceRecordings[rerecordIndex] = audioBlob;
+                sentenceTranscriptions[rerecordIndex] = newTranscription;
+                
+                // Update lastResultData
+                if (lastResultData && lastResultData.sentences[rerecordIndex]) {
+                    lastResultData.sentences[rerecordIndex] = {
+                        text: rerecordText,
+                        score: newAccuracy,
+                        totalWords: originalWords.length,
+                        correctWords: matchedCount,
+                        audioBlob: audioBlob,
+                        transcription: newTranscription
+                    };
+                }
+                
+                // Recalculate total score
+                const allSentences = lastResultData.sentences;
+                const totalWords = allSentences.reduce((sum, s) => sum + s.totalWords, 0);
+                const totalCorrect = allSentences.reduce((sum, s) => sum + s.correctWords, 0);
+                const totalAccuracy = Math.round((totalCorrect / totalWords) * 100);
+                
+                lastResultData.totalScore = totalAccuracy;
+                lastResultData.totalWords = totalWords;
+                lastResultData.correctWords = totalCorrect;
+                
+                // Refresh results display
+                const sentenceResults = allSentences.map(s => ({
+                    text: s.text,
+                    accuracy: s.score,
+                    total: s.totalWords,
+                    matched: s.correctWords,
+                    wordStates: []
+                }));
+                
+                displayResults(totalAccuracy, totalWords, totalCorrect, sentenceResults, '', '');
+                
+                // Close modal
+                alert(`✅ Re-recorded!\n\nNew Score: ${newAccuracy}%\nOverall Score: ${totalAccuracy}%`);
+                closeRerecordModal();
+                
+            } catch (error) {
+                console.error('❌ Evaluation error:', error);
+                alert('⚠️ Evaluation failed: ' + error.message);
+                document.getElementById('rerecord-stop-btn').disabled = false;
+                document.getElementById('rerecord-status').textContent = 'Error occurred. Try again.';
+            }
+        });
+        
+        // Cancel button
+        document.getElementById('rerecord-cancel-btn')?.addEventListener('click', closeRerecordModal);
+        
+        // Close modal on background click
+        document.getElementById('rerecord-modal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeRerecordModal();
+            }
         });
         
     </script>
