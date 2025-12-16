@@ -1842,8 +1842,22 @@
                 console.log('✅ Reusing existing microphone stream (no permission prompt)');
             }
             
-            // Update UI
-            updateSentenceDisplay();
+            // Update UI - Initialize with 0 progress (녹음 시작 전)
+            const sentenceElement = document.getElementById('current-recording-sentence');
+            if (sentenceElement) {
+                sentenceElement.innerHTML = highlightWordsInSentence(recordingSentences[0]);
+            }
+            
+            const progressElement = document.getElementById('sentence-progress');
+            if (progressElement) {
+                progressElement.textContent = `Ready: ${recordingSentences.length} sentence${recordingSentences.length > 1 ? 's' : ''} to record`;
+            }
+            
+            const progressBarElement = document.getElementById('sentence-progress-bar');
+            if (progressBarElement) {
+                progressBarElement.style.width = '0%';
+            }
+            
             const completedContainer = document.getElementById('completed-sentences-container');
             if (completedContainer) completedContainer.style.display = 'none';
             document.getElementById('evaluate-btn').classList.add('hidden');
@@ -1861,10 +1875,14 @@
             
             const currentSentence = recordingSentences[currentRecordingSentenceIndex];
             const totalSentences = recordingSentences.length;
-            const progress = ((currentRecordingSentenceIndex + 1) / totalSentences) * 100;
+            
+            // 🎯 Progress = 완료된 문장 수 / 전체 문장 수 (녹음 시작 전에는 0%)
+            const completedSentences = currentRecordingSentenceIndex;
+            const progress = (completedSentences / totalSentences) * 100;
             const isLastSentence = (currentRecordingSentenceIndex === totalSentences - 1);
             
             console.log('Current sentence:', currentSentence);
+            console.log('Completed sentences:', completedSentences);
             console.log('Progress:', progress + '%');
             console.log('Is last sentence:', isLastSentence);
             
@@ -1876,7 +1894,7 @@
                 console.error('Element not found: current-recording-sentence');
             }
             
-            // Update progress
+            // Update progress (현재 녹음 중인 문장 번호)
             const progressElement = document.getElementById('sentence-progress');
             if (progressElement) {
                 progressElement.textContent = `Sentence ${currentRecordingSentenceIndex + 1} of ${totalSentences}`;
@@ -2676,6 +2694,9 @@
                 alert('⚠️ Microphone not available. Please go back and try again.');
                 return;
             }
+            
+            // 🎯 녹음 시작 시 progress 업데이트
+            updateSentenceDisplay();
             
             // 🔧 이전 mediaRecorder가 아직 정리되지 않았다면 정리
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
