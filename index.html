@@ -1623,7 +1623,7 @@
             }
         }
         
-        // 🎯 스마트 문장 분할 (모든 엣지 케이스 고려)
+        // 🎯 스마트 문장 분할 (대화문 우선 처리)
         function smartSentenceSplit(text) {
             if (!text || text.trim().length === 0) {
                 return [];
@@ -1632,12 +1632,11 @@
             console.log('📝 Starting smart sentence split...');
             console.log('Original text:', text);
             
-            // 1단계: 보호해야 할 패턴들을 임시 마커로 교체
+            // 1단계: 약어 보호
             let protected = text;
             const protectedItems = [];
             let markerIndex = 0;
             
-            // 1-1. 약어 보호
             const abbreviations = [
                 'Mr.', 'Mrs.', 'Ms.', 'Miss.', 'Dr.', 'Prof.', 'Sr.', 'Jr.',
                 'St.', 'Ave.', 'Rd.', 'Blvd.', 'Apt.', 'Dept.', 'Bldg.',
@@ -1657,14 +1656,8 @@
                 });
             });
             
-            // 1-2. 숫자 패턴 보호
-            const numberPatterns = [
-                /\$\d+(?:,\d{3})*(?:\.\d+)?/g,
-                /\d+(?:,\d{3})*(?:\.\d+)?%?/g,
-                /\d+:\d+(?::\d+)?(?:\s*[ap]\.?m\.?)?/gi
-            ];
-            
-            numberPatterns.forEach(pattern => {
+            // 숫자 보호
+            [/\$\d+(?:,\d{3})*(?:\.\d+)?/g, /\d+(?:,\d{3})*(?:\.\d+)?%?/g].forEach(pattern => {
                 protected = protected.replace(pattern, (match) => {
                     const marker = `__MARKER${markerIndex}__`;
                     protectedItems[markerIndex] = match;
@@ -1673,31 +1666,7 @@
                 });
             });
             
-            // 1-3. 이메일 보호
-            protected = protected.replace(/[\w.-]+@[\w.-]+\.\w+/g, (match) => {
-                const marker = `__MARKER${markerIndex}__`;
-                protectedItems[markerIndex] = match;
-                markerIndex++;
-                return marker;
-            });
-            
-            // 1-4. URL 보호
-            const urlPatterns = [
-                /https?:\/\/[^\s]+/g,
-                /www\.[^\s]+/g,
-                /[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?/g
-            ];
-            
-            urlPatterns.forEach(pattern => {
-                protected = protected.replace(pattern, (match) => {
-                    const marker = `__MARKER${markerIndex}__`;
-                    protectedItems[markerIndex] = match;
-                    markerIndex++;
-                    return marker;
-                });
-            });
-            
-            // 1-5. 생략 부호 보호
+            // 생략 부호 보호
             protected = protected.replace(/\.{3,}/g, (match) => {
                 const marker = `__MARKER${markerIndex}__`;
                 protectedItems[markerIndex] = match;
@@ -1707,100 +1676,100 @@
             
             console.log('After protection:', protected);
             
-            // 2단계: 간단하고 정확한 문장 분할
+            // 2단계: 문장 분할 (대화문 특별 처리)
             const sentences = [];
-            let current = '';
-            let inQuote = false;
-            let quoteDepth = 0;
+            let i = 0;
             
-            for (let i = 0; i < protected.length; i++) {
-                const char = protected[i];
-                const nextChar = protected[i + 1] || '';
-                const next2Char = protected[i + 2] || '';
+            while (i < protected.length) {
+                // 공백 스킵
+                while (i < protected.length && /\s/.test(protected[i])) {
+                    i++;
+                }
                 
-                current += char;
+                if (i >= protected.length) break;
                 
-                // 따옴표 추적 (열기/닫기)
-                if (char === '"' || char === '\u201C' || char === '\u201D') {
-                    if (!inQuote) {
+                let sentence = '';
+                let inQuote = false;
+                let quoteStart = -1;
+                
+                // 한 문장 추출
+                while (i < protected.length) {
+                    const char = protected[i];
+                    sentence += char;
+                    
+                    // 따옴표 시작
+                    if (['"', '\u201C', '\u2018'].includes(char) && !inQuote) {
                         inQuote = true;
-                        quoteDepth++;
-                    } else {
-                        quoteDepth--;
-                        if (quoteDepth === 0) {
-                            inQuote = false;
+                        quoteStart = i;
+                        i++;
+                        continue;
+                    }
+                    
+                    // 따옴표 끝
+                    if (['"', '\u201D', '\u2019'].includes(char) && inQuote) {
+                        inQuote = false;
+                        i++;
+                        
+                        // 따옴표 끝 후 대화 태그 확인
+                        // 예: " said John. 또는 ," said John, " 또는 ," said John. "
+                        const remaining = protected.slice(i);
+                        const dialogPattern = /^[,.]?\s*(said|says|asked|asks|replied|replies|shouted|shouts|whispered|whispers|exclaimed|exclaims|answered|answers|continued|continues|added|adds|thought|thinks|wondered|wonders|cried|cries|yelled|yells|muttered|mutters|murmured|murmurs|declared|declares|announced|announces|stated|states|explained|explains|remarked|remarks)\s+[\w\s,'"-]+?[.!?]/i;
+                        
+                        const match = remaining.match(dialogPattern);
+                        if (match) {
+                            sentence += remaining.slice(0, match[0].length);
+                            i += match[0].length;
+                            break; // 문장 완료
+                        }
+                        
+                        // 대화 태그 없이 따옴표만 끝나면 계속
+                        continue;
+                    }
+                    
+                    // 따옴표 안에서는 문장 부호 무시
+                    if (inQuote) {
+                        i++;
+                        continue;
+                    }
+                    
+                    // 따옴표 밖에서 문장 종결 부호
+                    if (['.', '!', '?'].includes(char)) {
+                        const nextChar = protected[i + 1] || '';
+                        const next2Char = protected[i + 2] || '';
+                        
+                        // 다음이 공백 + 대문자이거나 끝이면 문장 완료
+                        if (!nextChar || 
+                            nextChar === '\n' || 
+                            (nextChar === ' ' && (!next2Char || /[A-Z"\u201C\u2018]/.test(next2Char))) ||
+                            /[A-Z"\u201C\u2018]/.test(nextChar)) {
+                            i++;
+                            break;
                         }
                     }
-                }
-                
-                // 문장 끝 감지 (따옴표 밖에서만)
-                if (!inQuote && (char === '.' || char === '!' || char === '?')) {
-                    // 다음이 공백, 대문자, 따옴표, 또는 끝이면 문장 완료
-                    const isEnd = (
-                        nextChar === '' ||
-                        nextChar === '\n' ||
-                        nextChar === '\r' ||
-                        (nextChar === ' ' && (next2Char === '' || /[A-Z"\u201C]/.test(next2Char))) ||
-                        /[A-Z"\u201C]/.test(nextChar)
-                    );
                     
-                    // 마커 체크 (약어가 아닌지)
-                    const endsWithMarker = /__MARKER\d+__$/.test(current.trim());
-                    
-                    if (isEnd && !endsWithMarker) {
-                        const trimmed = current.trim();
-                        if (trimmed.length > 0) {
-                            sentences.push(trimmed);
-                            current = '';
-                        }
-                    }
+                    i++;
+                }
+                
+                if (sentence.trim()) {
+                    sentences.push(sentence.trim());
                 }
             }
             
-            // 마지막 남은 텍스트
-            if (current.trim().length > 0) {
-                sentences.push(current.trim());
-            }
-            
-            // 3단계: 대화 태그 병합 (says X, asked Y 등이 혼자 있는 경우)
-            const merged = [];
-            for (let i = 0; i < sentences.length; i++) {
-                const sentence = sentences[i];
-                const nextSentence = sentences[i + 1] || '';
-                
-                // 다음 문장이 짧고 대화 태그로 시작하면 병합
-                const dialogueTagPattern = /^(said|says|asked|asks|replied|replies|shouted|shouts|whispered|whispers|exclaimed|exclaims|answered|answers|continued|continues|added|adds|thought|thinks|wondered|wonders|cried|cries|yelled|yells|muttered|mutters|murmured|murmurs|declared|declares|announced|announces|stated|states|explained|explains|remarked|remarks)\s+\w+/i;
-                
-                if (nextSentence && nextSentence.length < 50 && dialogueTagPattern.test(nextSentence.trim())) {
-                    // 병합
-                    merged.push(sentence + ' ' + nextSentence);
-                    i++; // 다음 문장 건너뛰기
-                } else {
-                    merged.push(sentence);
-                }
-            }
-            
-            // 4단계: 보호된 항목 복원
-            const restored = merged.map(sentence => {
+            // 3단계: 보호된 항목 복원
+            const restored = sentences.map(sentence => {
                 let result = sentence;
                 protectedItems.forEach((item, index) => {
                     if (item !== undefined) {
-                        const marker = `__MARKER${index}__`;
-                        result = result.replace(new RegExp(marker, 'g'), item);
+                        result = result.replace(new RegExp(`__MARKER${index}__`, 'g'), item);
                     }
                 });
-                return result;
+                return result.trim();
             });
             
-            // 5단계: 정리
-            const cleaned = restored
-                .filter(s => s.trim().length > 0)
-                .map(s => s.trim());
+            console.log('✅ Final sentences:', restored);
+            console.log('Total:', restored.length, 'sentences');
             
-            console.log('✅ Final sentences:', cleaned);
-            console.log('Total:', cleaned.length, 'sentences');
-            
-            return cleaned.length > 0 ? cleaned : [text];
+            return restored.length > 0 ? restored : [text];
         }
         
         // Prepare sentences for recording
